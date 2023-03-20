@@ -11,5 +11,5 @@ dependencies:
   - jinja2
   - networkx
   - pygraphviz
-  - singularity =3.8.6
+  - singularity >=3.7.1, <=3.8.6
   - squashfs-tools

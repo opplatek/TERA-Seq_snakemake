@@ -37,12 +37,11 @@ If you use this workflow in a paper, don't forget to give credits to the authors
     
 ## Install environment
 cd /home/jan/projects/TERA-Seq_snakemake/
-mamba env create -f environment.yaml -n snakemake
-conda activate snakemake    
+mamba env create -f environment.yaml -n tera-snakemake
+conda activate tera-snakemake
 
 ### Make singularity image
-singularity pull docker://joppelt/teraseq
-
+singularity pull docker://joppelt/teraseq-snakemake
     
 ## TODO
 * How to run different Conda environments within the Singularity?
@@ -55,7 +54,9 @@ singularity pull docker://joppelt/teraseq
 #docker build -t local/my_container:latest .
 sudo docker build -t local/teraseq:conda .
 #sudo singularity build my_container.sif docker-daemon://local/my_container:latest
-sudo singularity build teraseq-conda.sif docker-daemon://local/teraseq:conda
+mkdir /home/jan/tmp # Make temporary directory somewhere fast
+export SINGULARITY_CACHEDIR=/home/jan/tmp # Export Singularity cache variable somewhere fast
+sudo singularity build --tmpdir '/home/jan/tmp' teraseq-conda.sif docker-daemon://local/teraseq:conda # I haven't figured out how to use variable in Singularity --tmpdir so you have to manually write the path
 '''
 
 * run Singularity in an interactive mode

@@ -6,3 +6,5 @@ logs/**
 *.sif
 test*
 *bckp
+dev
+cache

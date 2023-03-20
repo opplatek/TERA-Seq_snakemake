@@ -7,9 +7,8 @@ rule silva_download:
         '''
         . /root/miniconda3/bin/activate
         conda activate teraseq
-        samtools --version
-        touch {output}
-        '''       
+        samtools --version > {output}
+        '''
 #        wget \
 #            https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz \
 #            -O {output[0]}
