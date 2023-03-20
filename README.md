@@ -56,7 +56,10 @@ singularity pull docker://joppelt/teraseq
 sudo docker build -t local/teraseq:conda .
 #sudo singularity build my_container.sif docker-daemon://local/my_container:latest
 sudo singularity build teraseq-conda.sif docker-daemon://local/teraseq:conda
-``` 
+'''
+
+* run Singularity in an interactive mode
+`singularity shell container.sif``
 
 ## Notes
 * `docker run -ti my_image /bin/bash`
