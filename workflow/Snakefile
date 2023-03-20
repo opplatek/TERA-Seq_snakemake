@@ -2,3 +2,29 @@
 # Please follow the best practices: 
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
 # in particular regarding the standardized folder structure mentioned there. 
+
+from snakemake.utils import min_version
+import pandas as pd
+import os
+import re
+
+
+##### set minimum snakemake version #####
+min_version("7.24.0")
+
+
+##### Define container
+singularity: "/home/jan/projects/TERA-Seq_snakemake/teraseq_latest.sif"    
+
+
+##### load rules #####
+include: "rules/references-prep.smk"
+
+
+##### target rules #####
+rule all:
+    input: 
+        "test.txt"
+#    input:
+#        "data/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
+#        "data/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz"

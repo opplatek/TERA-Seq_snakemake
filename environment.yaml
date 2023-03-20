@@ -1,0 +1,15 @@
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - r
+dependencies:
+  - python =3.7.1
+  - snakemake-minimal =7.24.0
+  - pandas
+  - pygments
+  - jinja2
+  - networkx
+  - pygraphviz
+  - singularity =3.8.6
+  - squashfs-tools
