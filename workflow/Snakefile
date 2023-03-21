@@ -1,7 +1,7 @@
-# Main entrypoint of the workflow. 
-# Please follow the best practices: 
+# Main entrypoint of the workflow.
+# Please follow the best practices:
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
-# in particular regarding the standardized folder structure mentioned there. 
+# in particular regarding the standardized folder structure mentioned there.
 
 from snakemake.utils import min_version
 import pandas as pd
@@ -14,17 +14,19 @@ min_version("7.24.0")
 
 
 ##### Define container
-singularity: "teraseq-conda.sif"    
+singularity: "teraseq-perl.sif"
 
 
 ##### load rules #####
-include: "rules/references-prep.smk"
+include: "rules/signularity-envs-test.smk"
+#include: "rules/references-prep.smk"
 
 
 ##### target rules #####
 rule all:
-    input: 
-        "test.txt"
-#    input:
+    input:
+        "results/singularity-perl-test.txt",
+        "results/singularity-conda-test.txt",
+        "results/singularity-cutadapt-test.txt"
 #        "data/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
 #        "data/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz"

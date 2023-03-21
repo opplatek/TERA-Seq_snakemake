@@ -42,7 +42,7 @@ conda activate tera-snakemake
 
 ### Make singularity image
 singularity pull docker://joppelt/teraseq-snakemake
-    
+  
 ## TODO
 * How to run different Conda environments within the Singularity?
     * I like to pre-generate all Conda envs Snakemake workflow needs - can this be done in Singularity? I guess you would have to activate Conda on host, and then have pre-made Conda envs in the container and activate them in (?) Snakemake rule wrappers
@@ -64,4 +64,4 @@ sudo singularity build --tmpdir '/home/jan/tmp' teraseq-conda.sif docker-daemon:
 
 ## Notes
 * `docker run -ti my_image /bin/bash`
-
+* `docker build -t local/teraseq:perl - < Dockerfile-perlOnly`

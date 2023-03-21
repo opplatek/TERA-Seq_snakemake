@@ -14,7 +14,15 @@ ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 
 ### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++ and zlib1g-dev are required only for Nanopolish
-RUN apt-get update && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl locales language-pack-en \
+    && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
+    && rm -rf /var/lib/apt/lists/*
+
+### Set locale settings
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+ENV LC_TIME en_US.UTF-8
 
 ### Main GitHub repo
 WORKDIR /root
@@ -40,9 +48,10 @@ RUN wget \
 RUN conda env create -f /root/TERA-Seq_manuscript/teraseq-env.yml
 
 ### Fix error when using preinstalled Conda envs activation inside a Singularity container (https://gitlab.univ-nantes.fr/bird_pipeline_registry/srp-pipeline/-/tree/b5c1ac5e4f2449605701040484b0905028a74767#Troubleshooting or https://github.com/conda/conda/issues/8186)
-###       /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh: line 67: HOST: unbound variable
-### Start Signularity in an interactive (singularity shell container.sf) mode and check what's the problem (sed -n '67p') and follow the same pattern:
-###     "You can fix it by adapting the previous trick on the problematic lines (e.g. line 67 eval oldval="\$${from}$thing" becomes eval oldval="\${${from}$thing:-}" and so on)"
+#       /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh: line 67: HOST: unbound variable
+# Start Signularity in an interactive (singularity shell container.sf) mode and check what's the problem (sed -n '67p') and follow the same pattern:
+#     "You can fix it by adapting the previous trick on the problematic lines (e.g. line 67 eval oldval="\$${from}$thing" becomes eval oldval="\${${from}$thing:-}" and so on)"
+# You might get a similar error with virtual Perl environment. In that case, https://github.com/conda/conda/issues/8186#issuecomment-532874667 solution was enough - in the 'script', add set +eu, load the environment, and set set -eu
 RUN sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh \
     && sed -i 's/\${SYS_SYSROOT}/${SYS_SYSROOT:-}/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
     && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
@@ -54,8 +63,8 @@ RUN sed -i 's/-Xmx250m/-Xmx5g/g' /root/miniconda3/envs/teraseq/opt/fastqc-*/fast
 
 #ENV PATH="${PATH}:/root/miniconda3/envs/teraseq/bin"
 
-RUN ln -s /root/miniconda3/envs/teraseq/bin/R /bin/R \
-    && ln -s /root/miniconda3/envs/teraseq/bin/curl /bin/curl
+RUN ln -s /root/miniconda3/envs/teraseq/bin/R /bin/R
+#   \ && ln -s /root/miniconda3/envs/teraseq/bin/curl /bin/curl
 
 ### Save default Conda path
 RUN sed -i '/CONDA_PREFIX/d' /root/TERA-Seq_manuscript/PARAMS.sh \
@@ -176,5 +185,8 @@ RUN git clone "https://github.com/lindenb/jvarkit.git" \
     && ./gradlew biostar84452 \
     && mkdir $CONDA_PREFIX/share/jvarkit \
     && ln -s $(pwd)/dist/biostar84452.jar /root/miniconda3/envs/teraseq/share/jvarkit/remove-softlip.jar
+
+### Add utils dir to PATH
+ENV PATH "/root/TERA-Seq_manuscript/tools/utils:${PATH}"
 
 WORKDIR /root/TERA-Seq_manuscript
