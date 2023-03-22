@@ -14,7 +14,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 
 ### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++ and zlib1g-dev are required only for Nanopolish
-RUN apt-get update && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl locales language-pack-en \
+RUN apt-get update \
+    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl locales language-pack-en \
     && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,18 +26,18 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_TIME en_US.UTF-8
 
 ### Main GitHub repo
-WORKDIR /root
+WORKDIR /usr/local
 RUN git clone https://github.com/mourelatos-lab/TERA-Seq_manuscript.git
 
 ### Install Miniconda3
-ENV PATH "/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
+ENV PATH "/usr/local/miniconda3/bin:${PATH}"
+ARG PATH="/usr/local/miniconda3/bin:${PATH}"
 RUN echo ${PATH}
 
 RUN wget \
     https://repo.anaconda.com/miniconda/Miniconda3-py37_23.1.0-1-Linux-x86_64.sh -O Miniconda3.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3.sh -b \
+    && mkdir /usr/local/.conda \
+    && bash Miniconda3.sh -bfp /usr/local/miniconda3 \
     && rm -f Miniconda3.sh
 #RUN conda --version
 
@@ -44,34 +45,37 @@ RUN wget \
 #RUN conda install -c conda-forge mamba
 
 # Get Conda yml and install environment
-#RUN mamba env create -f /root/TERA-Seq_manuscript/teraseq-env.yml
-RUN conda env create -f /root/TERA-Seq_manuscript/teraseq-env.yml
+#RUN mamba env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml
+RUN conda env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml
 
 ### Fix error when using preinstalled Conda envs activation inside a Singularity container (https://gitlab.univ-nantes.fr/bird_pipeline_registry/srp-pipeline/-/tree/b5c1ac5e4f2449605701040484b0905028a74767#Troubleshooting or https://github.com/conda/conda/issues/8186)
-#       /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh: line 67: HOST: unbound variable
+#       /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh: line 67: HOST: unbound variable
 # Start Signularity in an interactive (singularity shell container.sf) mode and check what's the problem (sed -n '67p') and follow the same pattern:
 #     "You can fix it by adapting the previous trick on the problematic lines (e.g. line 67 eval oldval="\$${from}$thing" becomes eval oldval="\${${from}$thing:-}" and so on)"
 # You might get a similar error with virtual Perl environment. In that case, https://github.com/conda/conda/issues/8186#issuecomment-532874667 solution was enough - in the 'script', add set +eu, load the environment, and set set -eu
-RUN sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh \
-    && sed -i 's/\${SYS_SYSROOT}/${SYS_SYSROOT:-}/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
-    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
-    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gfortran_linux-64.sh \
-    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /root/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gxx_linux-64.sh
+RUN sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh \
+    && sed -i 's/\${SYS_SYSROOT}/${SYS_SYSROOT:-}/' /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
+    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gcc_linux-64.sh \
+    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gfortran_linux-64.sh \
+    && sed -i 's/eval\ oldval="\\$\${from}\$thing"/eval oldval="\\${${from}$thing:-}"/' /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-gxx_linux-64.sh
 
 # Increase default FastQC RAM
-RUN sed -i 's/-Xmx250m/-Xmx5g/g' /root/miniconda3/envs/teraseq/opt/fastqc-*/fastqc
+RUN sed -i 's/-Xmx250m/-Xmx5g/g' /usr/local/miniconda3/envs/teraseq/opt/fastqc-*/fastqc
 
-#ENV PATH="${PATH}:/root/miniconda3/envs/teraseq/bin"
+#ENV PATH="${PATH}:/usr/local/miniconda3/envs/teraseq/bin"
 
-RUN ln -s /root/miniconda3/envs/teraseq/bin/R /bin/R
-#   \ && ln -s /root/miniconda3/envs/teraseq/bin/curl /bin/curl
+RUN ln -s /usr/local/miniconda3/envs/teraseq/bin/R /bin/R
+#   \ && ln -s /usr/local/miniconda3/envs/teraseq/bin/curl /bin/curl
 
 ### Save default Conda path
-RUN sed -i '/CONDA_PREFIX/d' /root/TERA-Seq_manuscript/PARAMS.sh \
-    && echo -e "CONDA_PREFIX=\"/root/miniconda3\"" >> /root/TERA-Seq_manuscript/PARAMS.sh
+RUN sed -i '/CONDA_PREFIX/d' /usr/local/TERA-Seq_manuscript/PARAMS.sh \
+    && echo -e "CONDA_PREFIX=\"/usr/local/miniconda3\"" >> /usr/local/TERA-Seq_manuscript/PARAMS.sh
+
+# Set permissions the same for all users to avoid Singularity "issue" with running as root (Docker) vs running as user who executed the command (Singularity)
+RUN chmod -R a=u /usr/local/miniconda3
 
 ### Perl
-WORKDIR /root/TERA-Seq_manuscript/tools
+WORKDIR /usr/local/TERA-Seq_manuscript/tools
 
 ## Virtual environment install (option 2)
 RUN git clone https://github.com/jizhang/perl-virtualenv.git \
@@ -111,7 +115,7 @@ RUN git clone --recursive https://github.com/genoo/GenOO.git perl-virtualenv/ter
 # Install specific version of Perl module https://stackoverflow.com/questions/260593/how-can-i-install-a-specific-version-of-a-set-of-perl-modules
 RUN . perl-virtualenv/teraseq/bin/activate \
     && cpanm --force CLIPSeqTools@0.1.9  \
-    && cp -r /root/TERA-Seq_manuscript/misc/GenOOx/* perl-virtualenv/teraseq/lib/perl5/GenOOx/
+    && cp -r /usr/local/TERA-Seq_manuscript/misc/GenOOx/* perl-virtualenv/teraseq/lib/perl5/GenOOx/
 
 ####################################################################################################
 # ### Nanopolish
@@ -134,7 +138,7 @@ RUN . perl-virtualenv/teraseq/bin/activate \
 #     && git reset 3dc96c5 --hard \
 #     && cd ../ \
 #     && make \
-#     && ln -s $(pwd)/nanopolish /root/miniconda3/envs/teraseq/bin/nanopolish
+#     && ln -s $(pwd)/nanopolish /usr/local/miniconda3/envs/teraseq/bin/nanopolish
 
 # # New version with polya hmm scripts
 # RUN git clone --recursive https://github.com/jts/nanopolish.git \
@@ -184,9 +188,12 @@ RUN git clone "https://github.com/lindenb/jvarkit.git" \
     && git reset 014d3e9 --hard \
     && ./gradlew biostar84452 \
     && mkdir $CONDA_PREFIX/share/jvarkit \
-    && ln -s $(pwd)/dist/biostar84452.jar /root/miniconda3/envs/teraseq/share/jvarkit/remove-softlip.jar
+    && ln -s $(pwd)/dist/biostar84452.jar /usr/local/miniconda3/envs/teraseq/share/jvarkit/remove-softlip.jar
+
+# Set permissions the same for all users to avoid Singularity "issue" with running as root (Docker) vs running as user who executed the command (Singularity)
+RUN chmod -R a=u /usr/local/TERA-Seq_manuscript/tools
 
 ### Add utils dir to PATH
-ENV PATH "/root/TERA-Seq_manuscript/tools/utils:${PATH}"
+ENV PATH "/usr/local/TERA-Seq_manuscript/tools/utils:${PATH}"
 
-WORKDIR /root/TERA-Seq_manuscript
+WORKDIR /usr/local/TERA-Seq_manuscript

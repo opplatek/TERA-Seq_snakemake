@@ -35,13 +35,31 @@ If you use this workflow in a paper, don't forget to give credits to the authors
     * We'll hope most of the hosts have Python3 installed and Miniconda doesn't need root access
 * Or pre-make Singularity container like [here](https://snakemake-on-nesi.sschmeier.com/singularity.html) and run the whole workflow with `snakemake --use-singularity`
     
-## Install environment
+## Install Conda environment
 cd /home/jan/projects/TERA-Seq_snakemake/
-mamba env create -f environment.yaml -n tera-snakemake
-conda activate tera-snakemake
+mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
+
+### Install Singularity
+**Important:** Installing Singularity in Conda doesn't work well. The system doesn't see it as a root installation and converts all Singularity containers (.sif) into a sandbox for **every** Snakemake output.
+
+First, check whether you have all the dependencies from [here](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-dependencies) and have [Go installed](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-go)
+
+For Ubuntu 20.04 and the tested version, do:
+```
+cd ~/tools/
+wget https://github.com/sylabs/singularity/releases/download/v3.11.1/singularity-ce_3.11.1-bionic_amd64.deb
+sudo apt install ./singularity-ce_3.11.1-bionic_amd64.deb && rm singularity-ce_3.11.1-bionic_amd64.deb
+singularity version
+```
 
 ### Make singularity image
 singularity pull docker://joppelt/teraseq-snakemake
+
+### Run the pipeline
+```
+conda activate tera-snakemake
+snakemake --use-singularity -c1 -p
+```
   
 ## TODO
 * How to run different Conda environments within the Singularity?
@@ -52,15 +70,15 @@ singularity pull docker://joppelt/teraseq-snakemake
 ### Make Singularity from Docker
 ```
 #docker build -t local/my_container:latest .
-sudo docker build -t local/teraseq:conda .
+sudo docker build -t teraseq:snakemake .
 #sudo singularity build my_container.sif docker-daemon://local/my_container:latest
 mkdir /home/jan/tmp # Make temporary directory somewhere fast
-export SINGULARITY_CACHEDIR=/home/jan/tmp # Export Singularity cache variable somewhere fast
-sudo singularity build --tmpdir '/home/jan/tmp' teraseq-conda.sif docker-daemon://local/teraseq:conda # I haven't figured out how to use variable in Singularity --tmpdir so you have to manually write the path
+export SINGULARITY_CACHEDIR=/home/jan/tmp # Export Singularity cache variable somewhere fast otherwise it will jam your /tmp
+singularity build --tmpdir '/home/jan/tmp' teraseq-snakemake.sif docker-daemon://local/teraseq:snakemake # I haven't figured out how to use variable in Singularity --tmpdir so you have to manually write the path
 '''
 
 * run Singularity in an interactive mode
-`singularity shell container.sif``
+`singularity shell snakemake.sif``
 
 ## Notes
 * `docker run -ti my_image /bin/bash`
