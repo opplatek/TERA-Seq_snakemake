@@ -14,17 +14,32 @@ min_version("7.24.0")
 
 
 ##### Define container
-singularity: "teraseq-snakemake"
+singularity: "teraseq-snakemake.sif"
+
+
+##### Functions to load virt environments in Singularity
+activ_perl="set +eu; . /usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/teraseq/bin/activate; set -eu"
+activ_conda=". /usr/local/miniconda3/bin/activate; conda activate teraseq"
+activ_cutadapt=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/cutadapt-2.5/venv/bin/activate"
+activ_deeptools=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/deepTools-3.5.0/venv/bin/activate"
+
+
+##### Variables
+ASSEMBLY=["hg38"] # TODO: Fetch this from a config file for each sample separately
 
 
 ##### load rules #####
 include: "rules/signularity-envs-test.smk"
-#include: "rules/references-prep.smk"
+include: "rules/references-prep.smk"
 
 
 ##### target rules #####
 rule all:
     input:
-        expand("results/singularity-{test}-test.txt", test=["conda", "perl", "cutadapt", "deeptools"])
-#        "data/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
-#        "data/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz"
+        expand("data/{assembly}/ribosomal.fa", assembly=ASSEMBLY),
+        expand("data/{assembly}/genes-total.gtf", assembly=ASSEMBLY),
+        expand("data/{assembly}/genic_elements-total.mrna.bed", assembly=ASSEMBLY),
+        expand("data/{assembly}/ribosomal.gmap.gtf", assembly=ASSEMBLY),
+        expand("data/{assembly}/ensembl_genes.gtf.gz", assembly=ASSEMBLY),
+        expand("data/{assembly}/rRNA_tRNA.bed", assembly=ASSEMBLY),
+#        expand("results/singularity-{test}-test.txt", test=["conda", "perl", "cutadapt", "deeptools"])

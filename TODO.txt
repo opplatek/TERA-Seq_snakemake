@@ -1,0 +1,4 @@
+- fetch params.org from the main Snakemake
+    - make aliases for assembly (hg3x = Homo sapiens, ...) and use that instead of hardcoding
+- specificy assembly (hg38, ...) in config file for each sample separately
+- find a proper way how to use lambda in rule gtrna_download as output (fetch gtrna_bed from get_links)

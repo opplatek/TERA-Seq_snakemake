@@ -78,7 +78,7 @@ singularity build --tmpdir '/home/jan/tmp' teraseq-snakemake.sif docker-daemon:/
 '''
 
 * run Singularity in an interactive mode
-`singularity shell snakemake.sif``
+`singularity shell teraseq-snakemake.sif`
 
 ## Notes
 * `docker run -ti my_image /bin/bash`
