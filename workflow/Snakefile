@@ -13,33 +13,74 @@ import re
 min_version("7.24.0")
 
 
-##### Define container
+##### Define container #####
 singularity: "teraseq-snakemake.sif"
 
 
-##### Functions to load virt environments in Singularity
+##### config file #####
+configfile: "config/config.yaml"
+
+
+##### Functions to load virt environments in Singularity #####
 activ_perl="set +eu; . /usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/teraseq/bin/activate; set -eu"
 activ_conda=". /usr/local/miniconda3/bin/activate; conda activate teraseq"
 activ_cutadapt=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/cutadapt-2.5/venv/bin/activate"
 activ_deeptools=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/deepTools-3.5.0/venv/bin/activate"
+CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # Save Conda bin path
+
+def get_refs(config, sample):
+    assembly=f"{config[sample]}"
+
+    return {'mmi_wribo':"data/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
+            'mmi_trans':"data/" + assembly + "/minimap2.17/transcripts.k12.mmi",
+            'mmi_genome':"data/" + assembly + "/minimap2.17/genome.k12.mmi",
+            'gtf_polya':"data/" + assembly + "/genes-polya.gtf",
+            'bed_mrna':"data/" + assembly + "/genic_elements.mrna.bed",
+            'bed_ncrna':"data/" + assembly + "/genic_elements.ncrna.bed",
+            'bed_utr5':"data/" + assembly + "/genic_elements.utr5.bed",
+            'bed_cds':"data/" + assembly + "/genic_elements.cds.bed",
+            'bed_utr3':"data/" + assembly + "/genic_elements.utr3.bed"}
 
 
-##### Variables
+##### Variables #####
 ASSEMBLY=["hg38"] # TODO: Fetch this from a config file for each sample separately
+SAMPLE=["hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1"]
+
+
+##### read config #####
+# Samples -> assembly
+ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly'])
+
+
+##### Wildcards constrains
+wildcard_constraints:
+    sample="[^/]*", # anything but "/" anywhere in the string; Note: don't use ^...$, to specify constrains, it woulnd't work
+#    topn="(All|\d+)",
 
 
 ##### load rules #####
 include: "rules/signularity-envs-test.smk"
 include: "rules/references-prep.smk"
-
+include: "rules/sanitize-reads.smk"
+include: "rules/preprocess.smk"
+include: "rules/map_minimap2.smk"
+include: "rules/sam-sql-db.smk"
 
 ##### target rules #####
 rule all:
     input:
-        expand("data/{assembly}/ribosomal.fa", assembly=ASSEMBLY),
-        expand("data/{assembly}/genes-total.gtf", assembly=ASSEMBLY),
-        expand("data/{assembly}/genic_elements-total.mrna.bed", assembly=ASSEMBLY),
-        expand("data/{assembly}/ribosomal.gmap.gtf", assembly=ASSEMBLY),
-        expand("data/{assembly}/ensembl_genes.gtf.gz", assembly=ASSEMBLY),
-        expand("data/{assembly}/rRNA_tRNA.bed", assembly=ASSEMBLY),
+        # expand("data/{assembly}/ribosomal.fa", assembly=ASSEMBLY),
+        # expand("data/{assembly}/genes-total.gtf", assembly=ASSEMBLY),
+        # expand("data/{assembly}/genic_elements-total.mrna.bed", assembly=ASSEMBLY),
+        # expand("data/{assembly}/ribosomal.gmap.gtf", assembly=ASSEMBLY),
+        # expand("data/{assembly}/ensembl_genes.gtf.gz", assembly=ASSEMBLY),
+        # expand("data/{assembly}/rRNA_tRNA.bed", assembly=ASSEMBLY),
+        # expand("data/{assembly}/minimap2.17", assembly=ASSEMBLY),
+        # expand("data/samples/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz", sample=SAMPLE)
+        # expand("data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam.bai", sample=SAMPLE),
+        # expand("data/samples/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam.bai", sample=SAMPLE),
+        expand("data/samples/{sample}/db/annot_genome_rel5.done", sample=SAMPLE)
+        # expand("data/{assembly}/STAR-2.7.2b", assembly=ASSEMBLY),
+        # expand("data/{assembly}/STAR-2.7.2b-annot", assembly=ASSEMBLY)
+#
 #        expand("results/singularity-{test}-test.txt", test=["conda", "perl", "cutadapt", "deeptools"])
