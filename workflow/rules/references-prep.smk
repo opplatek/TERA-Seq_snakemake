@@ -1,16 +1,16 @@
 from pathlib import Path
 
-def get_links(assembly):
-    if assembly == "hg38":
-        return {'org':"Homo sapiens",
-                'link':"ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
-                'link_gtf':"ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz",
-                'gtrna':"http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz",
-                'gtrna_bed':"data/{assembly}/hg38-tRNAs.bed"}
-    elif assembly == "mm10":
-        return {'org':"Mus musculus",
-                'link':"ftp://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
-                'link_gft':"ftp://ftp.ensembl.org/pub/release-97/gtf/mus_musculus/Mus_musculus.GRCm38.97.gtf.gz"}
+#def get_links(assembly):
+    # if assembly == "hg38":
+    #     return {'org':"Homo sapiens",
+    #             'link':"ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
+    #             'link_gtf':"ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz",
+    #             'gtrna':"http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz",
+    #             'gtrna_bed':"data/{assembly}/hg38-tRNAs.bed"}
+    # elif assembly == "mm10":
+    #     return {'org':"Mus musculus",
+    #             'link':"ftp://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
+    #             'link_gft':"ftp://ftp.ensembl.org/pub/release-97/gtf/mus_musculus/Mus_musculus.GRCm38.97.gtf.gz"}
 
 ### SILVA rRNA
 rule silva_download:
@@ -20,8 +20,10 @@ rule silva_download:
        silva_lsu="data/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
        silva_ssu="data/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
     params:
-        link_lsu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
-        link_ssu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
+#        link_lsu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
+#        link_ssu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
+        link_lsu=REF_LINKS['silva']['lsu'],
+        link_ssu=REF_LINKS["silva"]['ssu'],
     shell:
         '''
         wget \
@@ -78,7 +80,8 @@ rule silva_extract:
         "data/{assembly}/ribosomal.fa"
     params:
 #        org="Homo sapiens"
-        org=lambda wildcards: get_links(wildcards.assembly)['org']
+#        org=lambda wildcards: get_links(wildcards.assembly)['org']
+        org=lambda wildcards: REF_LINKS[wildcards.assembly]['org']
     shell:
         '''
         {activ_perl}
@@ -98,7 +101,8 @@ rule gtrna_download:
         tar="data/{assembly}/tRNAs.tar.gz",
         bed="data/{assembly}/{assembly}-tRNAs.bed"
     params:
-        link=lambda wildcards: get_links(wildcards.assembly)['gtrna']
+#        link=lambda wildcards: get_links(wildcards.assembly)['gtrna']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtrna']
     shell:
         '''
         wget {params.link} -O {output.tar}
@@ -140,7 +144,8 @@ rule genome_download:
         "data/{assembly}/genome.fa"
     params:
 #        link="ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz"
-        link=lambda wildcards: get_links(wildcards.assembly)['link']
+#        link=lambda wildcards: get_links(wildcards.assembly)['genome']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['genome']
     shell:
         '''
         {activ_perl}
@@ -169,7 +174,8 @@ rule annotation_download:
         temp("data/{assembly}/ensembl_genes.orig.gtf")
     params:
 #        link_gtf="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
-        link=lambda wildcards: get_links(wildcards.assembly)['link_gtf']
+#        link=lambda wildcards: get_links(wildcards.assembly)['gtf']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf']
     shell:
         '''
         wget -qO- {params.link} \
@@ -296,8 +302,9 @@ rule gtf_add_rrna:
         gtf="data/{assembly}/ensembl_genes.gtf",
         gtf_gz="data/{assembly}/ensembl_genes.gtf.gz",
     params:
-#        link_gtf="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
-        link_gtf=lambda wildcards: get_links(wildcards.assembly)['link_gtf']
+#        link="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
+#        link=lambda wildcards: get_links(wildcards.assembly)['gtf']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf']
     shell:
         '''
         {activ_conda}
@@ -308,7 +315,7 @@ rule gtf_add_rrna:
         cat {output.gtf_worrna} {input.gtf_rrna} > {output.gtf_wrrna}
         (grep "^#" {output.gtf_wrrna}; grep -v "^#" {output.gtf_wrrna} | sort -k1,1 -k4,4n) > {output.gtf} # Add SILVA rRNA to Ensembl
         gzip -c {output.gtf} > {output.gtf_gz}
-        ln -sf {output.gtf_gz} $(dirname {output.gtf})/$(basename {params.link_gtf})
+        ln -sf {output.gtf_gz} $(dirname {output.gtf})/$(basename {params.link})
 
         gffread -w {output.trans_wrrna} -g {input.genome} {output.gtf} # All the transcripts with rRNA
         '''

@@ -1,11 +1,7 @@
-- fetch params.org from the main Snakemake
-    - make aliases for assembly (hg3x = Homo sapiens, ...) and use that instead of hardcoding
-- specificy assembly (hg38, ...) in config file for each sample separately
-- find a proper way how to use lambda in rule gtrna_download as output (fetch gtrna_bed from get_links)
 - make params visible in output for minimap2 indexing (k12) so we can specify all output files properly
 - test STAR indexing and alignment; as of 03/22/2023 untested
 - consider switching from params: tmpdir in STAR indexing to output: temp(tmpdir), maybe with touch to a *deleteme* file inside the tempdir[]
-- set params: k for minimap2 indexing from the map_minimap2.smk so Snakemake fetches it automatically
+- set params: k for minimap2 indexing from the map_minimap2.smk as {k} so Snakemake fetches it automatically
 - in all ribosomal_map, change samtools -m {params.mem_mb} relative to some portion of max allowed memory
 - move links to download references per reference from references-prep.smk to a config file
 - fetch main output dir for samples from config and change the rules to SAMPLES_DIR + ...
@@ -14,6 +10,5 @@
 - think about how to 'force' sqldb to not run at the same time other than 'xxx.done' files
 - add nanopolish to the Docker/Singularity
 - add nanopolish to Snakemake rules if fast5 directory is specified in the config file
-- fetch 5tera, 5tera-short, tera3, 5tera3 library type from config and choose correct adapter trimming and sqldb annotation
 - figure out how to access input: params: ... from the parent rule if we use use rule .. as ..: so we can only change what we need
 - Note: It seems that if we use use rule .. as .. and we change just a single setting from let's say input: we have to se all the other ones as well - it would be easier if the use as rules inherit everything but the changed variables

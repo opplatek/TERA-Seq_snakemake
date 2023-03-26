@@ -5,8 +5,9 @@
 
 from snakemake.utils import min_version
 import pandas as pd
-import os
-import re
+import yaml
+#import os
+#import re
 
 
 ##### set minimum snakemake version #####
@@ -42,21 +43,25 @@ def get_refs(config, sample):
             'bed_utr3':"data/" + assembly + "/genic_elements.utr3.bed"}
 
 
-##### Variables #####
-ASSEMBLY=["hg38"] # TODO: Fetch this from a config file for each sample separately
-SAMPLE=["hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1"]
-
-
 ##### read config #####
-# Samples -> assembly
-ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly'])
+# SAMPLES=["hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1"]
+# ASSEMBLIES={'hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1': 'hg38'}
+SAMPLES=pd.read_csv(config['samples'])['sample'].tolist() # read list of samples from the config
+ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly']) # Read sample->assembly
+with open(config['adapters'], 'r') as file:
+    ADAPTERS = yaml.safe_load(file)
+with open(config['ref_links'], 'r') as file:
+    REF_LINKS = yaml.safe_load(file)
+#print(ADAPTERS['5tera'])
+# def get_adapters(library):
+#     return config["library"][library]
 
 
 ##### Wildcards constrains
 wildcard_constraints:
     sample="[^/]*", # anything but "/" anywhere in the string; Note: don't use ^...$, to specify constrains, it woulnd't work
-#    topn="(All|\d+)",
-
+#    k="\d+", # Only numbers
+    k="[1-9]+", # Only numbers starting with 1
 
 ##### load rules #####
 include: "rules/signularity-envs-test.smk"
@@ -79,7 +84,7 @@ rule all:
         # expand("data/samples/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz", sample=SAMPLE)
         # expand("data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam.bai", sample=SAMPLE),
         # expand("data/samples/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam.bai", sample=SAMPLE),
-        expand("data/samples/{sample}/db/annot_genome_rel5.done", sample=SAMPLE)
+        expand("data/samples/{sample}/db/annot_genome_rel5.done", sample=SAMPLES)
         # expand("data/{assembly}/STAR-2.7.2b", assembly=ASSEMBLY),
         # expand("data/{assembly}/STAR-2.7.2b-annot", assembly=ASSEMBLY)
 #

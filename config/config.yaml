@@ -1,2 +1,5 @@
 samples: config/samples.csv
 
+adapters: config/adapters.yaml
+
+ref_links: config/ref_links.yaml
