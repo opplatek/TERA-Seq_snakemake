@@ -3,9 +3,9 @@ FROM ubuntu:16.04
 
 # LABEL about the custom image
 LABEL maintainer="jan.oppelt@pennmedicine.upenn.edu"
-LABEL version="0.1"
+LABEL version="0.2"
 LABEL description="This is custom Docker Image for \
-analysis of TERA-Seq publication (DOI: https://doi.org/10.1093/nar/gkab713)."
+analysis of TERA-Seq publication (DOI: https://doi.org/10.1093/nar/gkab713) using Snakemake and Singularity."
 
 # Disable Prompt During Packages Installation
 ARG DEBIAN_FRONTEND=noninteractive
@@ -15,7 +15,7 @@ SHELL ["/bin/bash", "-c"]
 
 ### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++ and zlib1g-dev are required only for Nanopolish
 RUN apt-get update \
-    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl locales language-pack-en \
+    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl bzip2 locales language-pack-en \
     && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
     && rm -rf /var/lib/apt/lists/*
 
@@ -89,21 +89,21 @@ RUN git clone https://github.com/jizhang/perl-virtualenv.git \
 
 ## TODO: Add versions to all Perl modules installations
 RUN . perl-virtualenv/teraseq/bin/activate \
-    && cpanm inc::Module::Install \
-    && cpanm autodie \
-    && cpanm DBI \
-    && cpanm Devel::Size \
-    && cpanm Getopt::Long::Descriptive \
-    && cpanm IO::File \
-    && cpanm IO::Interactive \
-    && cpanm IO::Uncompress::Gunzip \
-    && cpanm Params::Validate \
-    && cpanm Params::Util \
-    && cpanm Sub::Install \
-    && cpanm Modern::Perl \
-    && cpanm --force MooseX::App::Simple \
+    && cpanm inc::Module::Install@1.19 \
+    && cpanm autodie@2.29 \
+    && cpanm DBI@1.642 \
+    && cpanm Devel::Size@0.83 \
+    && cpanm Getopt::Long::Descriptive@0.104 \
+    && cpanm IO::File@1.39 \
+    && cpanm IO::Interactive@1.022 \
+    && cpanm --force IO::Uncompress::Gunzip \
+    && cpanm Params::Validate@1.29 \
+    && cpanm Params::Util@1.07 \
+    && cpanm Sub::Install@0.928 \
+    && cpanm Modern::Perl@1.20190601 \
+    && cpanm --force MooseX::App::Simple@1.41 \
     && cpanm --force MooseX::App::Command \
-    && cpanm --force MooseX::Getopt::Meta::Attribute::Trait::NoGetopt
+    && cpanm --force MooseX::Getopt::Meta::Attribute::Trait::NoGetopt@0.74
 
 RUN git clone --recursive https://github.com/genoo/GenOO.git perl-virtualenv/teraseq/lib/perl5/GenOO_git \
     && cd perl-virtualenv/teraseq/lib/perl5/GenOO_git/ \
@@ -117,36 +117,37 @@ RUN . perl-virtualenv/teraseq/bin/activate \
     && cpanm --force CLIPSeqTools@0.1.9  \
     && cp -r /usr/local/TERA-Seq_manuscript/misc/GenOOx/* perl-virtualenv/teraseq/lib/perl5/GenOOx/
 
-####################################################################################################
-# ### Nanopolish
-# # Default version
-# RUN git clone --recursive https://github.com/jts/nanopolish.git \
-#     && mv nanopolish nanopolish-480fc85 \
-#     && cd nanopolish-480fc85/ \
-#     && git reset 480fc85 --hard \
-#     && sed -i 's#http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2#https://gitlab.com/libeigen/eigen/-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2#' Makefile \
-#     && sed -i 's/tar -xjf $(EIGEN_VERSION).tar.bz2/tar -xjf eigen-$(EIGEN_VERSION).tar.bz2/' Makefile \
-#     && sed -i 's/eigen-eigen-\*/eigen-$(EIGEN_VERSION)/' Makefile \
-#     && rm -rf fast5 \
-#     && git clone https://github.com/mateidavid/fast5.git \
-#     && cd fast5/ \
-#     && git reset 18d6e34 --hard \
-#     && cd ../ \
-#     && rm -rf htslib \
-#     && git clone --recursive https://github.com/samtools/htslib.git \
-#     && cd htslib/ \
-#     && git reset 3dc96c5 --hard \
-#     && cd ../ \
-#     && make \
-#     && ln -s $(pwd)/nanopolish /usr/local/miniconda3/envs/teraseq/bin/nanopolish
+################################################################################
+### Nanopolish
+# Default version
+RUN git clone --recursive https://github.com/jts/nanopolish.git \
+    && mv nanopolish nanopolish-480fc85 \
+    && cd nanopolish-480fc85/ \
+    && git reset 480fc85 --hard \
+    && sed -i 's#http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2#https://gitlab.com/libeigen/eigen/-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2#' Makefile \
+    && sed -i 's/tar -xjf $(EIGEN_VERSION).tar.bz2/tar -xjf eigen-$(EIGEN_VERSION).tar.bz2/' Makefile \
+    && sed -i 's/eigen-eigen-\*/eigen-$(EIGEN_VERSION)/' Makefile \
+    && sed -i '27 i EIGEN_VERSION_MV ?= 'd9c80169e091a2c6e75ceb509f81764d22cf6a63 Makefile \
+    && sed -i 's/mv\ eigen-\$(EIGEN_VERSION)/mv\ eigen-\$(EIGEN_VERSION_MV)/' Makefile \
+    && rm -rf fast5 \
+    && git clone https://github.com/mateidavid/fast5.git \
+    && cd fast5/ \
+    && git reset 18d6e34 --hard \
+    && cd ../ \
+    && rm -rf htslib \
+    && git clone --recursive https://github.com/samtools/htslib.git \
+    && cd htslib/ \
+    && git reset 3dc96c5 --hard \
+    && cd ../ \
+    && make \
+    && ln -s $(pwd)/nanopolish /usr/local/miniconda3/envs/teraseq/bin/nanopolish
 
-# # New version with polya hmm scripts
-# RUN git clone --recursive https://github.com/jts/nanopolish.git \
-#     && mv nanopolish nanopolish-ab9722b \
-#     && cd nanopolish-ab9722b/ \
-#     && git reset ab9722b --hard
-####################################################################################################
-
+# New version with polya hmm scripts
+RUN git clone --recursive https://github.com/jts/nanopolish.git \
+    && mv nanopolish nanopolish-ab9722b \
+    && cd nanopolish-ab9722b/ \
+    && git reset ab9722b --hard
+################################################################################
 ### Other dependencies
 # Make sure to activate Conda
 SHELL ["conda", "run", "-n", "teraseq", "/bin/bash", "-c"]

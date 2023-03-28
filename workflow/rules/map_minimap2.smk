@@ -9,7 +9,7 @@ rule map_trans_polya_minimap2:
         k=12,
         secondary="yes",
         sec_to_prim=1.0,
-        mem_mb=2048,
+        mem_mb=768, # samtools sort sets -m per thread
     threads: 32
     shell:
         '''
@@ -46,7 +46,7 @@ rule map_genome_minimap2:
         k=12,
         secondary="yes",
         sec_to_prim=1.0,
-        mem_mb=2048,
+        mem_mb=768, # samtools sort sets -m per thread
     threads: 32
     shell:
         '''

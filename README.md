@@ -36,8 +36,12 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 * Or pre-make Singularity container like [here](https://snakemake-on-nesi.sschmeier.com/singularity.html) and run the whole workflow with `snakemake --use-singularity`
     
 ## Install Conda environment
+```
 cd /home/jan/projects/TERA-Seq_snakemake/
+conda install mamba -n base -c conda-forge
 mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
+# conda env create -f environment.yaml -n tera-snakemake
+```
 
 ### Install Singularity
 **Important:** Installing Singularity in Conda doesn't work well. The system doesn't see it as a root installation and converts all Singularity containers (.sif) into a sandbox for **every** Snakemake output.
@@ -83,3 +87,4 @@ singularity build --tmpdir '/home/jan/tmp' teraseq-snakemake.sif docker-daemon:/
 ## Notes
 * `docker run -ti my_image /bin/bash`
 * `docker build -t local/teraseq:perl - < Dockerfile-perlOnly`
+* nice workflow [here](https://github.com/zavolanlab/zarp)

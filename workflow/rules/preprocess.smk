@@ -1,3 +1,7 @@
+def get_adapter(libtypes, adapters, sample):
+    adapter=adapters[libtypes[sample]]
+    return adapter
+
 rule adapter_remove_rel5:
     input:
         "data/samples/{sample}/fastq/reads.1.sanitize.fastq.gz"
@@ -5,7 +9,8 @@ rule adapter_remove_rel5:
         wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
         woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
     params:
-        rel5long="XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT",
+#        rel5long="XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT",
+        rel5long=lambda wildcards: get_adapter(LIBTYPES, ADAPTERS, wildcards.sample),        
         overlap=31,
         minlen=25,
         errorrate=0.29,
@@ -57,14 +62,12 @@ rule ribosomal_map_minimap2:
     params:
         k=12,
         secondary="yes",
-        mem_mb=2048,
-#        assembly=lambda wildcards: f"{ASSEMBLIES[wildcards.sample]}",
+        mem_mb=768, # samtools sort sets -m per thread
     threads: 32
     shell:
         '''
         {activ_conda}
 
-        # echo {{params.assembly}}
         echo {input.mmi_wribo}
 
         minimap2 \

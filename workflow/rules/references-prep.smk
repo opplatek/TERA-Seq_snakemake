@@ -272,7 +272,7 @@ rule gtf_map_rrna:
         '''
         {activ_conda}
 
-        mkdir {output.index}
+        mkdir -p {output.index}
 
         gmap_build -d genome -D {output.index} {input.genome} # Make index
 
@@ -334,7 +334,7 @@ rule index_genome_minimap2:
         {activ_conda}
 
         if [ ! -d "{params.odir}" ]; then
-            mkdir {params.odir}
+            mkdir -p {params.odir}
         fi
 
         minimap2 -k {params.k} -d {output} {input}
@@ -376,7 +376,7 @@ rule index_woannot_star:
         '''
         {activ_conda}
 
-        mkdir {params.odir}
+        mkdir -p {params.odir}
 
         STAR \
             --runMode genomeGenerate \
@@ -405,7 +405,7 @@ rule index_wannot_star:
         '''
         {activ_conda}
 
-        mkdir {params.odir}
+        mkdir -p {params.odir}
 
         STAR \
             --runMode genomeGenerate \

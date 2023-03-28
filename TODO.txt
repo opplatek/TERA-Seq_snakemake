@@ -12,3 +12,12 @@
 - add nanopolish to Snakemake rules if fast5 directory is specified in the config file
 - figure out how to access input: params: ... from the parent rule if we use use rule .. as ..: so we can only change what we need
 - Note: It seems that if we use use rule .. as .. and we change just a single setting from let's say input: we have to se all the other ones as well - it would be easier if the use as rules inherit everything but the changed variables
+- add TERA3 preprocessing, alignment, annotation
+- add 5TERA3 preprocessing (two adapters!), alignment, annotation
+- add mouse tests
+- add yeast annotation (add UTRs, convert naming, fix annotation, ...)
+- add yeast tests
+- make conditional use of rules for TERA3/5TERA3 preprocessing and annotation; alignment is the same except using polya/total library 
+    - the easiest is probably to make a wrapper and decide there with if condition (make it in Python)
+    - other solution to make it conditional is to make list of desired output files and add/remove based on the condition; however, it wouldn't work here because the condtion is sample dependent
+- make conditional references for polya vs total libraries (protocol in config/samples.csv)
