@@ -42,10 +42,24 @@ def get_refs(assemblies, sample):
             'bed_cds':"data/" + assembly + "/genic_elements.cds.bed",
             'bed_utr3':"data/" + assembly + "/genic_elements.utr3.bed"}
 
+def get_libtype(libtypes, sample):
+    libtype=libtypes[sample]
+    return libtype
+
+def get_adaptside(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    adaptside="xxx"
+    if libtype.lower() == "5tera":
+        adaptside="rel5"
+    elif libtype.lower() == "tera3":
+        adaptside="rel3"
+
+    return adaptside
 
 ##### read config #####
-SAMPLES=["mm.test.1"]
-# SAMPLES = pd.read_csv(config['samples'])['sample'].tolist() # read list of samples from the config
+#SAMPLES=["sc.test.1"]
+SAMPLES = pd.read_csv(config['samples'])['sample'].tolist() # read list of samples from the config
 
 ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly']) # Read sample->assembly
 LIBTYPES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['libtype']) # Read sample->assembly
@@ -68,6 +82,7 @@ include: "rules/sanitize-reads.smk"
 include: "rules/preprocess.smk"
 include: "rules/map_minimap2.smk"
 include: "rules/sam-sql-db.smk"
+include: "rules/qc-post.smk"
 
 ##### target rules #####
 rule all:
@@ -82,7 +97,8 @@ rule all:
         # expand("data/samples/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz", sample=SAMPLE)
         # expand("data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam.bai", sample=SAMPLE),
         # expand("data/samples/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam.bai", sample=SAMPLE),
-        expand("data/samples/{sample}/db/annot_genome_rel5.done", sample=SAMPLES)
+        expand("data/samples/{sample}/log/cutadapt.lens.pdf", sample=SAMPLES),
+        expand("data/samples/{sample}/log/mapping-stats.transcriptome.done", sample=SAMPLES),
         # expand("data/{assembly}/STAR-2.7.2b", assembly=ASSEMBLY),
         # expand("data/{assembly}/STAR-2.7.2b-annot", assembly=ASSEMBLY)
 #

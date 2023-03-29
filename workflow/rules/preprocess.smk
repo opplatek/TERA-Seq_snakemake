@@ -2,15 +2,27 @@ def get_adapter(libtypes, adapters, sample):
     adapter=adapters[libtypes[sample]]
     return adapter
 
-rule adapter_remove_rel5:
+def get_input_by_libtype(libtypes, sample):
+    adaptside=get_adaptside(libtypes, sample)
+
+    return {'wadapt':"data/samples/" + sample + "/fastq/reads.1.sanitize.w_" + adaptside + ".fastq.gz",
+            'woadapt':"data/samples/" + sample + "/fastq/reads.1.sanitize.wo_" + adaptside + ".fastq.gz",
+            'wadapt_names':"data/samples/" + sample + "/fastq/reads.1.sanitize.w_" + adaptside + ".names.txt",
+            'woadapt_names':"data/samples/" + sample + "/fastq/reads.1.sanitize.wo_" + adaptside + ".names.txt",
+            'trim':"data/samples/" + sample + "/fastq/reads.1.sanitize." + adaptside + "_trim.fastq.gz"}
+
+#rule adapter_remove_rel5:
+rule adapter_remove:
     input:
         "data/samples/{sample}/fastq/reads.1.sanitize.fastq.gz"
     output:
-        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-        woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
+#        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
+#        woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
+        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
+        woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_adapt.fastq.gz",        
     params:
-#        rel5long="XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT",
-        rel5long=lambda wildcards: get_adapter(LIBTYPES, ADAPTERS, wildcards.sample),        
+#        adapter="XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT",
+        adapter=lambda wildcards: get_adapter(LIBTYPES, ADAPTERS, wildcards.sample),        
         overlap=31,
         minlen=25,
         errorrate=0.29,
@@ -21,7 +33,7 @@ rule adapter_remove_rel5:
         {activ_cutadapt}
 
         cutadapt \
-            -g {params.rel5long} \
+            -g {params.adapter} \
             --overlap {params.overlap} \
             --minimum-length {params.minlen} \
             --error-rate {params.errorrate} \
@@ -31,14 +43,19 @@ rule adapter_remove_rel5:
             &> {log}
         '''
 
-rule fastq_adapter_merge_rel5:
+
+#rule fastq_adapter_names_rel5:
+rule fastq_adapter_names:
     input: 
-        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-        woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
+#       wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
+#       woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
+       wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
+       woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_adapt.fastq.gz",       
     output:
-        wadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.names.txt",
-        woadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.names.txt",
-        merged="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",    
+        # wadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.names.txt",
+        # woadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.names.txt",
+        wadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.names.txt",
+        woadapt_names="data/samples/{sample}/fastq/reads.1.sanitize.wo_adapt.names.txt",        
     shell:
         '''
         zcat {input.wadapt} \
@@ -47,14 +64,29 @@ rule fastq_adapter_merge_rel5:
         zcat {input.woadapt} \
             | paste - - - - | cut -f1 | sed 's/^@//g' \
             > {output.woadapt_names}
+        '''
 
+#rule fastq_adapter_merge_rel5:
+rule fastq_adapter_merge:
+    input: 
+    #    wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
+    #    woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
+       wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
+       woadapt="data/samples/{sample}/fastq/reads.1.sanitize.wo_adapt.fastq.gz",
+    output:
+#        merged="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+        merged="data/samples/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
+    shell:
+        '''
         cat {input.wadapt} {input.woadapt} \
             > {output.merged}
         '''
 
+
 rule ribosomal_map_minimap2:
     input:
-        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+#        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+        fastq="data/samples/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
         mmi_wribo=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['mmi_wribo']
 #        mmi_wribo="data/hg38/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
     output:
@@ -85,6 +117,7 @@ rule ribosomal_map_minimap2:
             > {output}   
         '''
 
+
 rule ribosomal_extract:
     input:
         "data/samples/{sample}/align/reads.1.sanitize.toEnsembl-transcripts-wRibo.sorted.bam",
@@ -113,10 +146,12 @@ rule ribosomal_extract:
             > {output.bam}
         '''
 
+
 rule ribosomal_remove:
     input:
         ribo_names="data/samples/{sample}/align/reads.1.sanitize.toRibosomal.sorted.reads.txt",
-        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+#        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+        fastq="data/samples/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     output:
         fastq="data/samples/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz",
     shell:

@@ -1,4 +1,4 @@
-ruleorder: sam_to_sqlite_trans > sam_to_sqlite_genome
+# IMPORTANT: Sql isnt't compatible with Snakemake because we are constantly updating a file. Snakemake then thinks the input has changed and will try to redo all the rules. We would have to omit sql db file from the inputs.
 
 ### Transcriptome
 rule sam_to_sqlite_trans:
@@ -6,7 +6,7 @@ rule sam_to_sqlite_trans:
         bam="data/samples/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam",
     output:
         db="data/samples/{sample}/db/sqlite.db",
-        done="data/samples/{sample}/db/sam_to_sqlite_trans.done",
+        done="data/samples/{sample}/log/sam_to_sqlite_trans.done",
     params:
         filter_flags="-F 4 -F 16 -F 2048",
         table="transcr",
@@ -27,12 +27,13 @@ rule sam_to_sqlite_trans:
 
 rule annotate_sqlite_trans_mrna:
     input:
-        done="data/samples/{sample}/db/sam_to_sqlite_trans.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/sam_to_sqlite_trans.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         bed=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['bed_mrna'], 
     output:
-        done="data/samples/{sample}/db/annot_trans_mrna.done",
+        done="data/samples/{sample}/log/annot_trans_mrna.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",  
         column="coding_transcript",   
     shell:
@@ -40,78 +41,90 @@ rule annotate_sqlite_trans_mrna:
         {activ_perl}
 
         clipseqtools-preprocess annotate_with_file \
-            --database {input.db} \
+            --database {params.db} \
             --table {params.table} \
             --a_file {input.bed} \
             --column {params.column} \
         && touch {output.done}
         '''
 
+
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_ncrna with:
     input:
-        done="data/samples/{sample}/db/annot_trans_mrna.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/annot_trans_mrna.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         bed=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['bed_ncrna'], 
     output:
-        done="data/samples/{sample}/db/annot_trans_ncrna.done",
+        done="data/samples/{sample}/log/annot_trans_ncrna.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",
         column="noncoding_transcript",   
 
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr5 with:
     input:
-        done="data/samples/{sample}/db/annot_trans_ncrna.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/annot_trans_ncrna.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         bed=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['bed_utr5'],
     output:
-        done="data/samples/{sample}/db/annot_trans_utr5.done",
+        done="data/samples/{sample}/log/annot_trans_utr5.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",
         column="utr5", 
 
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_cds with:
     input:
-        done="data/samples/{sample}/db/annot_trans_utr5.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/annot_trans_utr5.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         bed=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['bed_cds'],  
     output:
-        done="data/samples/{sample}/db/annot_trans_cds.done",
+        done="data/samples/{sample}/log/annot_trans_cds.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",    
         column="cds",     
 
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr3 with:
     input:
-        done="data/samples/{sample}/db/annot_trans_cds.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/annot_trans_cds.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         bed=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['bed_utr3'],    
     output:
-        done="data/samples/{sample}/db/annot_trans_utr3.done",
+        done="data/samples/{sample}/log/annot_trans_utr3.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",
         column="utr3",         
 
 
-rule annotate_sqlite_trans_adapter_rel5:
+#rule annotate_sqlite_trans_adapter_rel5:
+rule annotate_sqlite_trans_adapter:
     input:
-        done="data/samples/{sample}/db/annot_trans_utr3.done",
-        db="data/samples/{sample}/db/sqlite.db",
-        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",            
+        done="data/samples/{sample}/log/annot_trans_utr3.done",
+        # db="data/samples/{sample}/db/sqlite.db",
+#        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
+        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",             
     output:
-        done="data/samples/{sample}/db/annot_trans_rel5.done",    
+#        done="data/samples/{sample}/log/annot_trans_rel5.done",
+        done="data/samples/{sample}/log/annot_trans_adapt.done",            
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="transcr",
-        column="rel5",
+#        column="rel5",
+        column=lambda wildcards: get_adaptside(LIBTYPES, wildcards.sample),
         column_bind="qname",
     shell:
         '''
         {activ_conda}
 
+        echo {params.column}
+
         annotate-sqlite-with-fastq \
-            --database {input.db} \
+            --database {params.db} \
             --db_col_bind {params.column_bind} \
             --db_col_add {params.column} \
             --db_tables {params.table} \
@@ -121,48 +134,68 @@ rule annotate_sqlite_trans_adapter_rel5:
 
 
 ### Genome
-use rule sam_to_sqlite_trans as sam_to_sqlite_genome with:
+rule sam_to_sqlite_genome:
     input:
-        done="data/samples/{sample}/db/annot_trans_rel5.done",
+#        done="data/samples/{sample}/log/annot_trans_rel5.done",
+        done="data/samples/{sample}/log/annot_trans_adapt.done",
         bam="data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam",
     output:
-        db="data/samples/{sample}/db/sqlite.db",
-        done="data/samples/{sample}/db/sam_to_sqlite_genome.done",
+        done="data/samples/{sample}/log/sam_to_sqlite_genome.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         filter_flags="-F 4 -F 2048",
         table="genome",
         conda_path=CONDA_PATH,
+    shell:
+        '''
+        {activ_perl}
+
+        {params.conda_path}/samtools view -h {params.filter_flags} {input.bam} \
+            | sam_to_sqlite \
+                --database {params.db} \
+                --table {params.table} \
+                --records_class GenOOx::Data::File::SAMminimap2::Record \
+                --drop \
+            && touch {output.done}
+        '''
 
 
 rule annotate_sqlite_genome_gtf_polya:
     input:
-        done="data/samples/{sample}/db/sam_to_sqlite_genome.done",
-        db="data/samples/{sample}/db/sqlite.db",
+        done="data/samples/{sample}/log/sam_to_sqlite_genome.done",
+        # db="data/samples/{sample}/db/sqlite.db",
         gtf=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['gtf_polya'],
     output:
-        done="data/samples/{sample}/db/annot_genome_gtf.done",
+        done="data/samples/{sample}/log/annot_genome_gtf.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="genome",
     shell:  
         '''      
         {activ_perl}
 
         clipseqtools-preprocess annotate_with_genic_elements \
-            --database {input.db} \
+            --database {params.db} \
             --table {params.table} \
             --gtf {input.gtf} \
         && touch {output.done}
         '''
 
-use rule annotate_sqlite_trans_adapter_rel5 as annotate_sqlite_genome_adapter_rel5 with:
+
+#use rule annotate_sqlite_trans_adapter_rel5 as annotate_sqlite_genome_adapter_rel5 with:
+use rule annotate_sqlite_trans_adapter as annotate_sqlite_genome_adapter with:
     input:
-        done="data/samples/{sample}/db/annot_genome_gtf.done",
-        db="data/samples/{sample}/db/sqlite.db",
-        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",            
+        done="data/samples/{sample}/log/annot_genome_gtf.done",
+        # db="data/samples/{sample}/db/sqlite.db",
+#        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
+        wadapt="data/samples/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",                    
     output:
-        done="data/samples/{sample}/db/annot_genome_rel5.done",
+#        done="data/samples/{sample}/log/annot_genome_rel5.done",
+        done="data/samples/{sample}/log/annot_genome_adapt.done",
     params:
+        db="data/samples/{sample}/db/sqlite.db",
         table="genome",
-        column="rel5",
+#        column="rel5",
+        column=lambda wildcards: get_adaptside(LIBTYPES, wildcards.sample),
         column_bind="qname",        
 

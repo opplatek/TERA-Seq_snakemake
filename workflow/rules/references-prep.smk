@@ -122,7 +122,9 @@ rule gtrna_extract:
     threads: 4
     shell:
         '''
-        cat {input} | sed 's/^chrM/MT/g' | sed 's/^chr//g' \
+        cat {input} \
+            | sed 's/^chrM/MT/g' \
+            | sed 's/^chr//g' \
             | sed 's/chr1_KI270713v1_random/KI270713.1/g' \
             | sort --parallel={threads} -T {params.tmpdir} -k1,1 -k2,2 | cut -f1-6 > {output}
         '''
@@ -230,7 +232,11 @@ rule annotation_elements_extract:
         '''
         # Create separate files for each genic element
         for element in "utr5" "utr3" "cds" "ncrna" "mrna"; do
-            grep -P ":${{element}}\t" {input} > data/{wildcards.assembly}/genic_elements.${{element}}.bed
+            if grep -P -q ":${{element}}\t" {input}; then
+                grep -P ":${{element}}\t" {input} > data/{wildcards.assembly}/genic_elements.${{element}}.bed
+            else
+                touch data/{wildcards.assembly}/genic_elements.${{element}}.bed
+            fi
 
             # Create separate files for each genic element - total RNA - just copy the same thing as for polyA
             ln -sf genic_elements.${{element}}.bed data/{wildcards.assembly}/genic_elements-total.${{element}}.bed

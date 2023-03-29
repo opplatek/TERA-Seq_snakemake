@@ -38,7 +38,8 @@ rule map_trans_polya_minimap2:
 
 rule map_genome_minimap2:
     input:
-        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+#        fastq="data/samples/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
+        fastq="data/samples/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
         mmi_genome=lambda wildcards: get_refs(ASSEMBLIES, wildcards.sample)['mmi_genome'],
     output:
         bam="data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam",

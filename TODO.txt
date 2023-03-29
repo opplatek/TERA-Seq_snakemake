@@ -1,4 +1,5 @@
-- make params visible in output for minimap2 indexing (k12) so we can specify all output files properly
+- Note: Snakemake cannot handle having two rules outputing the same output file name. It makes sense, this is how it's designed. But it makes it incompatible with sqldb databases
+- test whole run of full fastq.gz
 - test STAR indexing and alignment; as of 03/22/2023 untested
 - consider switching from params: tmpdir in STAR indexing to output: temp(tmpdir), maybe with touch to a *deleteme* file inside the tempdir[]
 - set params: k for minimap2 indexing from the map_minimap2.smk as {k} so Snakemake fetches it automatically
@@ -8,16 +9,18 @@
 - fetch data dir from config DATA_DIR + ...
 - unify naming of the rules
 - think about how to 'force' sqldb to not run at the same time other than 'xxx.done' files
-- add nanopolish to the Docker/Singularity
 - add nanopolish to Snakemake rules if fast5 directory is specified in the config file
 - figure out how to access input: params: ... from the parent rule if we use use rule .. as ..: so we can only change what we need
 - Note: It seems that if we use use rule .. as .. and we change just a single setting from let's say input: we have to se all the other ones as well - it would be easier if the use as rules inherit everything but the changed variables
 - add TERA3 preprocessing, alignment, annotation
 - add 5TERA3 preprocessing (two adapters!), alignment, annotation
-- add mouse tests
 - add yeast annotation (add UTRs, convert naming, fix annotation, ...)
 - add yeast tests
 - make conditional use of rules for TERA3/5TERA3 preprocessing and annotation; alignment is the same except using polya/total library 
     - the easiest is probably to make a wrapper and decide there with if condition (make it in Python)
     - other solution to make it conditional is to make list of desired output files and add/remove based on the condition; however, it wouldn't work here because the condtion is sample dependent
 - make conditional references for polya vs total libraries (protocol in config/samples.csv)
+- add basic adapter QC
+- add basic mapping QC
+- make selection of trimming/assignment based on output (rel5 vs rel3) in the input of the last rule and not sort of hardcoded like we have it now
+    - right now, it somehow works for 5tera and tera3, but would fail for 5tera3
