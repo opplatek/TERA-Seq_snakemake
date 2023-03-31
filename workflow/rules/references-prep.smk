@@ -6,7 +6,7 @@ from pathlib import Path
     #             'link':"ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
     #             'link_gtf':"ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz",
     #             'gtrna':"http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz",
-    #             'gtrna_bed':"data/{assembly}/hg38-tRNAs.bed"}
+    #             'gtrna_bed':datadir + "/{assembly}/hg38-tRNAs.bed"}
     # elif assembly == "mm10":
     #     return {'org':"Mus musculus",
     #             'link':"ftp://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
@@ -15,10 +15,10 @@ from pathlib import Path
 ### SILVA rRNA
 rule silva_download:
     output:
-#        silva_lsu=temp("data/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz"),
-#        silva_ssu=temp("data/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz")
-       silva_lsu="data/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
-       silva_ssu="data/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
+#        silva_lsu=temp(datadir + "/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz"),
+#        silva_ssu=temp(datadir + "/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz")
+       silva_lsu=datadir + "/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
+       silva_ssu=datadir + "/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
     params:
 #        link_lsu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
 #        link_ssu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
@@ -36,10 +36,10 @@ rule silva_download:
 
 rule silva_merge:
     input:
-        silva_lsu="data/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
-        silva_ssu="data/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
+        silva_lsu=datadir + "/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
+        silva_ssu=datadir + "/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
     output:
-        "data/silva/ribosomal.fa"
+        datadir + "/silva/ribosomal.fa"
     shell:
         '''
         {activ_perl}
@@ -56,9 +56,9 @@ rule silva_merge:
 
 rule silva_sanitize:
     input:
-        "data/silva/ribosomal.fa"
+        datadir + "/silva/ribosomal.fa"
     output:
-        "data/silva/ribosomal.bed"
+        datadir + "/silva/ribosomal.bed"
     shell:
         '''
         {activ_perl}
@@ -75,9 +75,9 @@ rule silva_sanitize:
 
 rule silva_extract:
     input:
-        "data/silva/ribosomal.fa"
+        datadir + "/silva/ribosomal.fa"
     output:
-        "data/{assembly}/ribosomal.fa"
+        datadir + "/{assembly}/ribosomal.fa"
     params:
 #        org="Homo sapiens"
 #        org=lambda wildcards: get_links(wildcards.assembly)['org']
@@ -98,15 +98,16 @@ rule silva_extract:
 ### GtRNAdb tRNA
 rule gtrna_download:
     output:
-        tar="data/{assembly}/tRNAs.tar.gz",
-        bed="data/{assembly}/{assembly}-tRNAs.bed"
+        tar=datadir + "/{assembly}/tRNAs.tar.gz",
+        bed=datadir + "/{assembly}/{assembly}-tRNAs.bed"
     params:
 #        link=lambda wildcards: get_links(wildcards.assembly)['gtrna']
-        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtrna']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtrna'],
+        datadir=datadir,
     shell:
         '''
         wget {params.link} -O {output.tar}
-        tar -xvzf {output.tar} -C "data/{wildcards.assembly}"
+        tar -xvzf {output.tar} -C "{params.datadir}/{wildcards.assembly}"
         '''
 
 # TODO: Make the chrosome conversion universal; right now (03/22/2023) it is specific for human and it should work for mouse
@@ -114,9 +115,9 @@ rule gtrna_download:
 # TODO: Decide whether use resources: tmpdir instead of params: tmpdir
 rule gtrna_extract:
     input:
-        "data/{assembly}/{assembly}-tRNAs.bed",
+        datadir + "/{assembly}/{assembly}-tRNAs.bed",
     output:
-        "data/{assembly}/tRNA.bed",
+        datadir + "/{assembly}/tRNA.bed",
     params:
         tmpdir=lambda wildcards, input: Path(input[0]).parent
     threads: 4
@@ -131,10 +132,10 @@ rule gtrna_extract:
 
 rule trna_rrna_merge:
     input:
-        trna="data/{assembly}/tRNA.bed",
-        rrna="data/{assembly}/rRNA.bed",
+        trna=datadir + "/{assembly}/tRNA.bed",
+        rrna=datadir + "/{assembly}/rRNA.bed",
     output:
-        "data/{assembly}/rRNA_tRNA.bed"
+        datadir + "/{assembly}/rRNA_tRNA.bed"
     shell:
         '''
         cat {input.rrna} {input.trna} > {output}
@@ -143,11 +144,11 @@ rule trna_rrna_merge:
 ### Genome
 rule genome_download:
     output:
-        "data/{assembly}/genome.fa"
+        datadir + "/{assembly}/genome.fa",
     params:
-#        link="ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz"
-#        link=lambda wildcards: get_links(wildcards.assembly)['genome']
-        link=lambda wildcards: REF_LINKS[wildcards.assembly]['genome']
+#        link="ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
+#        link=lambda wildcards: get_links(wildcards.assembly)['genome'],
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['genome'],
     shell:
         '''
         {activ_perl}
@@ -160,10 +161,10 @@ rule genome_download:
 
 rule genome_index:
     input:
-        "data/{assembly}/genome.fa"
+        datadir + "/{assembly}/genome.fa"
     output:
-        fai="data/{assembly}/genome.fa.fai",
-        sizes="data/{assembly}/chrom.sizes",
+        fai=datadir + "/{assembly}/genome.fa.fai",
+        sizes=datadir + "/{assembly}/chrom.sizes",
     shell:
         '''
         samtools faidx {input}
@@ -173,26 +174,27 @@ rule genome_index:
 ### Gene annotation
 rule annotation_download:
     output:
-        temp("data/{assembly}/ensembl_genes.orig.gtf")
+        temp(datadir + "/{assembly}/ensembl_genes.orig.gtf")
     params:
 #        link_gtf="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
 #        link=lambda wildcards: get_links(wildcards.assembly)['gtf']
-        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf']
+        link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf'],
+        datadir=datadir,
     shell:
         '''
         wget -qO- {params.link} \
             | gunzip -c \
             > {output}
-        ln -sf $(basename {output}) data/{wildcards.assembly}/$(basename {params.link} .gz)
+        ln -sf $(basename {output}) {params.datadir}/{wildcards.assembly}/$(basename {params.link} .gz)
         '''
 
 rule annotation_clean:
     input:
-        "data/{assembly}/ensembl_genes.orig.gtf"
+        datadir + "/{assembly}/ensembl_genes.orig.gtf"
     output:
-        "data/{assembly}/genes-polya.gtf",
-        "data/{assembly}/genes.gtf",
-        "data/{assembly}/genes-total.gtf",
+        datadir + "/{assembly}/genes-polya.gtf",
+        datadir + "/{assembly}/genes.gtf",
+        datadir + "/{assembly}/genes-total.gtf",
     shell:
         '''
         {activ_perl}
@@ -209,10 +211,10 @@ rule annotation_clean:
 
 rule annotation_elements:
     input:
-        "data/{assembly}/genes.gtf"
+        datadir + "/{assembly}/genes.gtf"
     output:
-        "data/{assembly}/genic_elements.bed",
-        "data/{assembly}/genic_elements-total.bed",
+        datadir + "/{assembly}/genic_elements.bed",
+        datadir + "/{assembly}/genic_elements-total.bed",
     shell:
         '''
         gff-to-genic-elements-bed \
@@ -223,36 +225,38 @@ rule annotation_elements:
 
 rule annotation_elements_extract:
     input:
-        "data/{assembly}/genic_elements.bed",
-        "data/{assembly}/genic_elements-total.bed",
+        datadir + "/{assembly}/genic_elements.bed",
+        datadir + "/{assembly}/genic_elements-total.bed",
     output:
-        multiext("data/{assembly}/genic_elements", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
-        multiext("data/{assembly}/genic_elements-total", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
+        multiext(datadir + "/{assembly}/genic_elements", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
+        multiext(datadir + "/{assembly}/genic_elements-total", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
+    params:
+        datadir=datadir,
     shell:
         '''
         # Create separate files for each genic element
         for element in "utr5" "utr3" "cds" "ncrna" "mrna"; do
             if grep -P -q ":${{element}}\t" {input}; then
-                grep -P ":${{element}}\t" {input} > data/{wildcards.assembly}/genic_elements.${{element}}.bed
+                grep -P ":${{element}}\t" {input} > {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
             else
-                touch data/{wildcards.assembly}/genic_elements.${{element}}.bed
+                touch {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
             fi
 
             # Create separate files for each genic element - total RNA - just copy the same thing as for polyA
-            ln -sf genic_elements.${{element}}.bed data/{wildcards.assembly}/genic_elements-total.${{element}}.bed
+            ln -sf genic_elements.${{element}}.bed {params.datadir}/{wildcards.assembly}/genic_elements-total.${{element}}.bed
         done
         '''
 
 rule transcripts_extract:
     input:
-        genome="data/{assembly}/genome.fa",
-        gtf="data/{assembly}/genes.gtf",
-        gtf_total="data/{assembly}/genes-total.gtf",
-        gtf_ens="data/{assembly}/ensembl_genes.orig.gtf",
+        genome=datadir + "/{assembly}/genome.fa",
+        gtf=datadir + "/{assembly}/genes.gtf",
+        gtf_total=datadir + "/{assembly}/genes-total.gtf",
+        gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.gtf",
     output:
-        trans="data/{assembly}/transcripts.fa",
-        trans_total="data/{assembly}/transcripts-total.fa",
-        gtf="data/{assembly}/ensembl_transcripts_protein_coding.gtf",
+        trans=datadir + "/{assembly}/transcripts.fa",
+        trans_total=datadir + "/{assembly}/transcripts-total.fa",
+        gtf=datadir + "/{assembly}/ensembl_transcripts_protein_coding.gtf",
     shell:
         '''
         {activ_conda}
@@ -266,13 +270,13 @@ rule transcripts_extract:
 # TODO: Change {output.index) to point to all the gmap index file and to the directory
 rule gtf_map_rrna:
     input:
-        genome="data/{assembly}/genome.fa",
-        rrna="data/{assembly}/ribosomal.fa",
+        genome=datadir + "/{assembly}/genome.fa",
+        rrna=datadir + "/{assembly}/ribosomal.fa",
     output:
-        index=directory("data/{assembly}/gmap-2019-09-12"),
-        gff="data/{assembly}/ribosomal.gmap.gff3",
-        summary="data/{assembly}/ribosomal.gmap-summary.txt",
-        gtf="data/{assembly}/ribosomal.gmap.gtf",
+        index=directory(datadir + "/{assembly}/gmap-2019-09-12"),
+        gff=datadir + "/{assembly}/ribosomal.gmap.gff3",
+        summary=datadir + "/{assembly}/ribosomal.gmap-summary.txt",
+        gtf=datadir + "/{assembly}/ribosomal.gmap.gtf",
     threads: 16
     shell:
         '''
@@ -297,16 +301,16 @@ rule gtf_map_rrna:
 
 rule gtf_add_rrna:
     input:
-        gtf_rrna="data/{assembly}/ribosomal.gmap.gtf",
-        gtf="data/{assembly}/ensembl_genes.orig.gtf",
-        genome="data/{assembly}/genome.fa",
+        gtf_rrna=datadir + "/{assembly}/ribosomal.gmap.gtf",
+        gtf=datadir + "/{assembly}/ensembl_genes.orig.gtf",
+        genome=datadir + "/{assembly}/genome.fa",
     output:
-        bed="data/{assembly}/rRNA.bed",
-        trans_wrrna="data/{assembly}/ensembl-transcripts-wRibo.fa",
-        gtf_worrna=temp("data/{assembly}/ensembl_genes.gtf.tmp"),
-        gtf_wrrna=temp("data/{assembly}/ensembl_genes.gtf.tmp2"),
-        gtf="data/{assembly}/ensembl_genes.gtf",
-        gtf_gz="data/{assembly}/ensembl_genes.gtf.gz",
+        bed=datadir + "/{assembly}/rRNA.bed",
+        trans_wrrna=datadir + "/{assembly}/ensembl-transcripts-wRibo.fa",
+        gtf_worrna=temp(datadir + "/{assembly}/ensembl_genes.gtf.tmp"),
+        gtf_wrrna=temp(datadir + "/{assembly}/ensembl_genes.gtf.tmp2"),
+        gtf=datadir + "/{assembly}/ensembl_genes.gtf",
+        gtf_gz=datadir + "/{assembly}/ensembl_genes.gtf.gz",
     params:
 #        link="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
 #        link=lambda wildcards: get_links(wildcards.assembly)['gtf']
@@ -329,12 +333,12 @@ rule gtf_add_rrna:
 ### Minimap2
 rule index_genome_minimap2:
     input:
-        "data/{assembly}/genome.fa",
+        datadir + "/{assembly}/genome.fa",
     output:
-        "data/{assembly}/minimap2.17/genome.k12.mmi",
+        datadir + "/{assembly}/minimap2.17/genome.k12.mmi",
     params:
         k=12,
-        odir=lambda wildcards, output: Path(output[0]).parent,        
+        odir=lambda wildcards, output: Path(output[0]).parent,
     shell:
         '''
         {activ_conda}
@@ -348,30 +352,30 @@ rule index_genome_minimap2:
 
 use rule index_genome_minimap2 as index_trans_polya_minimap2 with:
     input:
-        trans="data/{assembly}/transcripts.fa",
+        trans=datadir + "/{assembly}/transcripts.fa",
     output:
-        mmi_trans="data/{assembly}/minimap2.17/transcripts.k12.mmi",
+        mmi_trans=datadir + "/{assembly}/minimap2.17/transcripts.k12.mmi",
 
 use rule index_genome_minimap2 as index_trans_total_minimap2 with:
     input:
-        trans_total="data/{assembly}/transcripts-total.fa",
+        trans_total=datadir + "/{assembly}/transcripts-total.fa",
     output:
-        mmi_total="data/{assembly}/minimap2.17/transcripts-total.k12.mmi",
+        mmi_total=datadir + "/{assembly}/minimap2.17/transcripts-total.k12.mmi",
 
 use rule index_genome_minimap2 as index_trans_wrrna_minimap2 with:
     input:
-        trans_wrrna="data/{assembly}/ensembl-transcripts-wRibo.fa",
+        trans_wrrna=datadir + "/{assembly}/ensembl-transcripts-wRibo.fa",
     output:
-        mmi_wribo="data/{assembly}/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
+        mmi_wribo=datadir + "/{assembly}/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
 
 
 ### STAR
 # Note: For human-sized genomes, STAR will need ~33 GB RAM unless you change --genomeSAsparseD to 2 (default: 1) which will fit the genome to ~16 GM RAM but will make the search slower   input:
 rule index_woannot_star:
     input:
-        genome="data/{assembly}/genome.fa",
+        genome=datadir + "/{assembly}/genome.fa",
     output:
-        index="data/{assembly}/STAR-2.7.2b/SAindex",
+        index=datadir + "/{assembly}/STAR-2.7.2b/SAindex",
     params:
 #        tmpdir=str(lambda wildcards, output: Path(output[0]).parent) + "_STARtmp_woannot", # This won't work because lambda is evaluated in the shell: part (?)
         odir=lambda wildcards, output: Path(output[0]),
@@ -397,10 +401,10 @@ rule index_woannot_star:
 
 rule index_wannot_star:
     input:
-        genome="data/{assembly}/genome.fa",
-        gtf="data/{assembly}/ensembl_genes.gtf",
+        genome=datadir + "/{assembly}/genome.fa",
+        gtf=datadir + "/{assembly}/ensembl_genes.gtf",
     output:
-        index="data/{assembly}/STAR-2.7.2b-annot/SAindex",
+        index=datadir + "/{assembly}/STAR-2.7.2b-annot/SAindex",
     params:
 #        tmpdir=str(lambda wildcards, output: Path(output[0]).parent) + "_STARtmp_wannot", # This won't work because lambda is evaluated in the shell: part (?)
         odir=lambda wildcards, output: Path(output[0]),

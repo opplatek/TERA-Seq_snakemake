@@ -1,9 +1,11 @@
+- finish tera3 preprocessing (we only have adapter trimming, but nothing else)
+- cut Dockerfile to complete minimum only necessary for the Snakemake+Singularity run
 - Note: Snakemake cannot handle having two rules outputing the same output file name. It makes sense, this is how it's designed. But it makes it incompatible with sqldb databases
 - test whole run of full fastq.gz
 - test STAR indexing and alignment; as of 03/22/2023 untested
 - consider switching from params: tmpdir in STAR indexing to output: temp(tmpdir), maybe with touch to a *deleteme* file inside the tempdir[]
 - set params: k for minimap2 indexing from the map_minimap2.smk as {k} so Snakemake fetches it automatically
-- in all ribosomal_map, change samtools -m {params.mem_mb} relative to some portion of max allowed memory
+- in all ribosomal_map, change samtools -m {params.mem_mb} relative to some portion of max allowed memory relative to threads
 - move links to download references per reference from references-prep.smk to a config file
 - fetch main output dir for samples from config and change the rules to SAMPLES_DIR + ...
 - fetch data dir from config DATA_DIR + ...
@@ -14,13 +16,15 @@
 - Note: It seems that if we use use rule .. as .. and we change just a single setting from let's say input: we have to se all the other ones as well - it would be easier if the use as rules inherit everything but the changed variables
 - add TERA3 preprocessing, alignment, annotation
 - add 5TERA3 preprocessing (two adapters!), alignment, annotation
-- add yeast annotation (add UTRs, convert naming, fix annotation, ...)
-- add yeast tests
-- make conditional use of rules for TERA3/5TERA3 preprocessing and annotation; alignment is the same except using polya/total library 
+- make conditional use of rules for TERA3/5TERA3 preprocessing and annotation; alignment is the same except using polya/total library
     - the easiest is probably to make a wrapper and decide there with if condition (make it in Python)
     - other solution to make it conditional is to make list of desired output files and add/remove based on the condition; however, it wouldn't work here because the condtion is sample dependent
-- make conditional references for polya vs total libraries (protocol in config/samples.csv)
-- add basic adapter QC
-- add basic mapping QC
+- make conditional references for polya vs total libraries (protocol in config/samples.csv) other than just 5tera, tera3, or 5tera3 (~"force" polya/total annotation)
 - make selection of trimming/assignment based on output (rel5 vs rel3) in the input of the last rule and not sort of hardcoded like we have it now
     - right now, it somehow works for 5tera and tera3, but would fail for 5tera3
+- switch the input functions to unpack() https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#input-functions-and-unpack
+- add check in Snakemake to automatically select correct singularity image
+>>> import subprocess
+>>> str(subprocess.check_output("singularity --version", shell=True)).find(" 2.") != -1
+>>> str(subprocess.check_output("singularity --version", shell=True)).find(" 3.") != -1
+

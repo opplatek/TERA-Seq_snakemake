@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 
 # LABEL about the custom image
 LABEL maintainer="jan.oppelt@pennmedicine.upenn.edu"
-LABEL version="0.2"
+LABEL version="0.1"
 LABEL description="This is custom Docker Image for \
 analysis of TERA-Seq publication (DOI: https://doi.org/10.1093/nar/gkab713) using Snakemake and Singularity."
 
@@ -15,8 +15,8 @@ SHELL ["/bin/bash", "-c"]
 
 ### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++ and zlib1g-dev are required only for Nanopolish
 RUN apt-get update \
-    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl bzip2 locales language-pack-en \
-    && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
+    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl bzip2 \
+	locales language-pack-en && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
     && rm -rf /var/lib/apt/lists/*
 
 ### Set locale settings
@@ -87,7 +87,6 @@ RUN git clone https://github.com/jizhang/perl-virtualenv.git \
     && curl -L https://cpanmin.us/ -o teraseq/bin/cpanm \
     && chmod +x teraseq/bin/cpanm
 
-## TODO: Add versions to all Perl modules installations
 RUN . perl-virtualenv/teraseq/bin/activate \
     && cpanm inc::Module::Install@1.19 \
     && cpanm autodie@2.29 \
@@ -147,6 +146,7 @@ RUN git clone --recursive https://github.com/jts/nanopolish.git \
     && mv nanopolish nanopolish-ab9722b \
     && cd nanopolish-ab9722b/ \
     && git reset ab9722b --hard
+
 ################################################################################
 ### Other dependencies
 # Make sure to activate Conda

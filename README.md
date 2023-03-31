@@ -24,26 +24,43 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 * Nice summary [here](https://siscourses.ethz.ch/container_pipeline_tutorial/2_container_pipeline_tutorial.pdf)
 * Another decent summary [here](https://wfbroderick.com/2022-Aug-01.html) and [here](https://snakemake-on-nesi.sschmeier.com/singularity.html)
 * General simple Docker build info [here](https://devopscube.com/build-docker-image/)
+* Nice workflow [here](https://github.com/zavolanlab/zarp)
 
-## *Inside* vs *outside* 
+## Pipeline
+
+### Prepare dependencies
+
+#### *Inside* vs *outside* 
 * Running Singularity has two "main" options
     1) Bind the data into the Singularity container and run the whole analysis inside - less flexibility but more reproducibility (cannot use host-installed software)
     2) Specify to run Singularity in each Snakemake rule and collect the results - more flexibility but less reproducibility (needs Python, Snakemake, ..., installed on the host)
 
-## (?) Our solution
+#### (?) Our solution
 * Install Python3, Conda (Miniconda), and Snakemake (inside Conda) on the host and only run the individual steps in the Singularity container
     * We'll hope most of the hosts have Python3 installed and Miniconda doesn't need root access
-* Or pre-make Singularity container like [here](https://snakemake-on-nesi.sschmeier.com/singularity.html) and run the whole workflow with `snakemake --use-singularity`
+* Or use pre-make Singularity container like [here](https://snakemake-on-nesi.sschmeier.com/singularity.html) instead of Conda installation
     
-## Install Conda environment
+#### Install Conda environment
+* Install Conda and basic Conda environment. 
+
+* I recommend to use [**miniconda**](https://docs.conda.io/en/latest/miniconda.html). If you don't have **miniconda** (or **conda**) on your system, follow the instructions in the link. 
+
+* When installed, you can prepare the basic conda environment:
 ```
 cd /home/jan/projects/TERA-Seq_snakemake/
 conda install mamba -n base -c conda-forge
 mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
-# conda env create -f environment.yaml -n tera-snakemake
+```
+or from *scratch*:
+```
+mamba env create -n tera-snakemake \
+    -c conda-forge -c bioconda -c anaconda -c r \
+    python=3.7.1 snakemake-minimal=7.24.0 pandas pygments jinja2 networkx pygraphviz # If you don't have mamba, replace it with conda
 ```
 
-### Install Singularity
+`pygments jinja2 networkx pygraphviz` are not essential and are only use for reports (can be skipped)
+
+#### Install Singularity
 **Important:** Installing Singularity in Conda doesn't work well. The system doesn't see it as a root installation and converts all Singularity containers (.sif) into a sandbox for **every** Snakemake output.
 
 First, check whether you have all the dependencies from [here](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-dependencies) and have [Go installed](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-go)
@@ -56,35 +73,20 @@ sudo apt install ./singularity-ce_3.11.1-bionic_amd64.deb && rm singularity-ce_3
 singularity version
 ```
 
-### Make singularity image
-singularity pull docker://joppelt/teraseq-snakemake
+### Pull Singularity image from Docker hub
+```
+singularity pull docker://joppelt/teraseq:snakemake # If you have Singularity # If you have Singularity 2 (tested on 2.6.1-dist)
+singularity pull teraseq-snakemake.sif docker://joppelt/teraseq:snakemake # If you have Singularity 2 (tested on singularity-ce version 3.11.1-bionic)
+```
 
 ### Run the pipeline
+**Important:** If you have Singularity 2.x.x (tested on 2.6.1), change ##### Define container ##### in Snakefile to Singularity 2 version (`singularity: "teraseq-snakemake.simg"`)
 ```
 conda activate tera-snakemake
-snakemake --use-singularity -c1 -p
+snakemake --use-singularity -c1 -p --configfile config/config-test.yaml
 ```
   
 ## TODO
 * How to run different Conda environments within the Singularity?
     * I like to pre-generate all Conda envs Snakemake workflow needs - can this be done in Singularity? I guess you would have to activate Conda on host, and then have pre-made Conda envs in the container and activate them in (?) Snakemake rule wrappers
-* Cut Dockerfile to the bare minimum (if it works)
-* If the *old* Dockerfile doesn't work, make a new one
 
-### Make Singularity from Docker
-```
-#docker build -t local/my_container:latest .
-sudo docker build -t teraseq:snakemake .
-#sudo singularity build my_container.sif docker-daemon://local/my_container:latest
-mkdir /home/jan/tmp # Make temporary directory somewhere fast
-export SINGULARITY_CACHEDIR=/home/jan/tmp # Export Singularity cache variable somewhere fast otherwise it will jam your /tmp
-singularity build --tmpdir '/home/jan/tmp' teraseq-snakemake.sif docker-daemon://local/teraseq:snakemake # I haven't figured out how to use variable in Singularity --tmpdir so you have to manually write the path
-'''
-
-* run Singularity in an interactive mode
-`singularity shell teraseq-snakemake.sif`
-
-## Notes
-* `docker run -ti my_image /bin/bash`
-* `docker build -t local/teraseq:perl - < Dockerfile-perlOnly`
-* nice workflow [here](https://github.com/zavolanlab/zarp)

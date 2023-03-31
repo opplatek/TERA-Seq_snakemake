@@ -1,6 +1,18 @@
-"5tera": "XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
-"tera3": "GTGTCAGTCACTTCCA"
-"5tera-short": "XAGGGAGGACGATGCGG"
-"5tera3":
-    "5adapter": "XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
-    "3adapter": "GTGTCAGTCACTTCCA"
+"5tera": 
+    "sequence": "XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
+    "side": "-g" # -g trim from 5' end
+    "overlap": 31
+    "minlen": 25
+    "errorrate": 0.29    
+"tera3":
+    "sequence": "GTGTCAGTCACTTCCA"
+    "side": "-a" # -a trim from 3' end
+    "overlap": 16
+    "minlen": 0
+    "errorrate": 0.18    
+# "5tera-short":
+#     "sequence": "XAGGGAGGACGATGCGG"
+# "5tera3":
+#     "sequence": 
+#         "5adapter": "XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
+#         "3adapter": "GTGTCAGTCACTTCCA"

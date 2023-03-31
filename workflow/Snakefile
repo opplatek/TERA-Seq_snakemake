@@ -6,8 +6,9 @@
 from snakemake.utils import min_version
 import pandas as pd
 import yaml
+import subprocess
+import re
 #import os
-#import re
 
 
 ##### set minimum snakemake version #####
@@ -15,8 +16,14 @@ min_version("7.24.0")
 
 
 ##### Define container #####
-singularity: "teraseq-snakemake.sif"
+# Probably not very robust but works for now
+singularity_version = str(subprocess.check_output("singularity --version", shell=True))
+if re.findall(r'\b2.', singularity_version) != []:
+    singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
+else:
+    singularity_container="teraseq-snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
 
+singularity: singularity_container
 
 ##### config file #####
 configfile: "config/config.yaml"
@@ -29,33 +36,49 @@ activ_cutadapt=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/cuta
 activ_deeptools=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/deepTools-3.5.0/venv/bin/activate"
 CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # Save Conda bin path
 
-def get_refs(assemblies, sample):
+
+def get_refs(datadir, assemblies, sample):
     assembly=f"{assemblies[sample]}"
 
-    return {'mmi_wribo':"data/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
-            'mmi_trans':"data/" + assembly + "/minimap2.17/transcripts.k12.mmi",
-            'mmi_genome':"data/" + assembly + "/minimap2.17/genome.k12.mmi",
-            'gtf_polya':"data/" + assembly + "/genes-polya.gtf",
-            'bed_mrna':"data/" + assembly + "/genic_elements.mrna.bed",
-            'bed_ncrna':"data/" + assembly + "/genic_elements.ncrna.bed",
-            'bed_utr5':"data/" + assembly + "/genic_elements.utr5.bed",
-            'bed_cds':"data/" + assembly + "/genic_elements.cds.bed",
-            'bed_utr3':"data/" + assembly + "/genic_elements.utr3.bed"}
+    return {'mmi_wribo':datadir + "/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
+            'mmi_trans':datadir + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
+            'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
+            'gtf_polya':datadir + "/" + assembly + "/genes-polya.gtf",
+            'bed_mrna':datadir + "/" + assembly + "/genic_elements.mrna.bed",
+            'bed_ncrna':datadir + "/" + assembly + "/genic_elements.ncrna.bed",
+            'bed_utr5':datadir + "/" + assembly + "/genic_elements.utr5.bed",
+            'bed_cds':datadir + "/" + assembly + "/genic_elements.cds.bed",
+            'bed_utr3':datadir + "/" + assembly + "/genic_elements.utr3.bed"}
+
 
 def get_libtype(libtypes, sample):
     libtype=libtypes[sample]
+
     return libtype
+
 
 def get_adaptside(libtypes, sample):
     libtype=get_libtype(libtypes, sample)
 
-    adaptside="xxx"
     if libtype.lower() == "5tera":
         adaptside="rel5"
     elif libtype.lower() == "tera3":
         adaptside="rel3"
 
     return adaptside
+
+
+def get_adapter(libtypes, adapters, sample):
+    adapter=adapters[libtypes[sample]['sequence']]
+    return adapter
+
+def get_cutadapt_settings(libtypes, adapters, sample):
+    return {'sequence':adapters[libtypes[sample]]['sequence'],
+            'side':adapters[libtypes[sample]]['side'],
+            'overlap':adapters[libtypes[sample]]['overlap'],
+            'minlen':adapters[libtypes[sample]]['minlen'],
+            'errorrate':adapters[libtypes[sample]]['errorrate']}
+
 
 ##### read config #####
 #SAMPLES=["sc.test.1"]
@@ -68,12 +91,21 @@ with open(config['adapters'], 'r') as file:
 with open(config['ref_links'], 'r') as file:
     REF_LINKS = yaml.safe_load(file)
 #print(ADAPTERS[LIBTYPES["hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1"]])
+with open(config['dirs'], 'r') as file:
+    DIRS = yaml.safe_load(file)
+
+    datadir = DIRS['datadir']
+    samplesdir = DIRS['samplesdir']
+    resdir = DIRS['resdir']
+
 
 ##### Wildcards constrains
 wildcard_constraints:
     sample="[^/]*", # anything but "/" anywhere in the string; Note: don't use ^...$, to specify constrains, it woulnd't work
 #    k="\d+", # Only numbers
     k="[1-9]+", # Only numbers starting with 1
+    assembly="[^/]*", # anything but "/" anywhere in the string; Note: don't use ^...$, to specify constrains, it woulnd't work
+
 
 ##### load rules #####
 include: "rules/signularity-envs-test.smk"
@@ -84,22 +116,19 @@ include: "rules/map_minimap2.smk"
 include: "rules/sam-sql-db.smk"
 include: "rules/qc-post.smk"
 
+
+##### target files #####
+TARGETS = ["log/cutadapt.lens.pdf",
+           "log/mapping-stats.transcriptome.done",
+           "log/reads.1.sanitize.toGenome.len.pdf",
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
+           "log/reads.1.sanitize.adapt_trim.read-len.txt",
+           "log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf",
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf"]
+RESULTS = [""]
+
 ##### target rules #####
 rule all:
     input:
-        # expand("data/{assembly}/ribosomal.fa", assembly=ASSEMBLY),
-        # expand("data/{assembly}/genes-total.gtf", assembly=ASSEMBLY),
-        # expand("data/{assembly}/genic_elements-total.mrna.bed", assembly=ASSEMBLY),
-        # expand("data/{assembly}/ribosomal.gmap.gtf", assembly=ASSEMBLY),
-        # expand("data/{assembly}/ensembl_genes.gtf.gz", assembly=ASSEMBLY),
-        # expand("data/{assembly}/rRNA_tRNA.bed", assembly=ASSEMBLY),
-        # expand("data/{assembly}/minimap2.17", assembly=ASSEMBLY),
-        # expand("data/samples/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz", sample=SAMPLE)
-        # expand("data/samples/{sample}/align/reads.1.sanitize.toGenome.sorted.bam.bai", sample=SAMPLE),
-        # expand("data/samples/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam.bai", sample=SAMPLE),
-        expand("data/samples/{sample}/log/cutadapt.lens.pdf", sample=SAMPLES),
-        expand("data/samples/{sample}/log/mapping-stats.transcriptome.done", sample=SAMPLES),
-        # expand("data/{assembly}/STAR-2.7.2b", assembly=ASSEMBLY),
-        # expand("data/{assembly}/STAR-2.7.2b-annot", assembly=ASSEMBLY)
-#
-#        expand("results/singularity-{test}-test.txt", test=["conda", "perl", "cutadapt", "deeptools"])
+        expand(samplesdir + "/{sample}/{target}", sample=SAMPLES, target=TARGETS),
+#        expand(resdir + "/{analysis}/{sample}/{result}", analysis="", sample=SAMPLES, result=RESULTS), # TODO

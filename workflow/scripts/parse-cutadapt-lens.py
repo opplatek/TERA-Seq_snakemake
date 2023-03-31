@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import re  
 import sys
 
 #ifile="/home/jan/playground/TERA-Seq_snakemake/data/samples/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/cutadapt.log"
@@ -31,7 +30,7 @@ def cutadapt_parse_lens(ifile, library):
             err_counts = line.split('\t')[4]
             print('{}\t{}\t{}\t{}\t{}\t{}'.format(library, length, count, expect, max_err, err_counts))
 
-usage = "Usage: python3 " + os.path.basename(__file__) + " cutadapt.log"
+usage = "Usage: python3 " + os.path.basename(__file__) + " cutadapt.log samplename"
 
 if len(sys.argv) != 3:
     print(usage)
