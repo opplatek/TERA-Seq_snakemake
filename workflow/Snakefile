@@ -40,15 +40,15 @@ CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # Save Conda bin path
 def get_refs(datadir, assemblies, sample):
     assembly=f"{assemblies[sample]}"
 
-    return {'mmi_wribo':datadir + "/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
-            'mmi_trans':datadir + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
+    return {'mmi_wribo':datadir  + "/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
+            'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
             'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
-            'gtf_polya':datadir + "/" + assembly + "/genes-polya.gtf",
-            'bed_mrna':datadir + "/" + assembly + "/genic_elements.mrna.bed",
-            'bed_ncrna':datadir + "/" + assembly + "/genic_elements.ncrna.bed",
-            'bed_utr5':datadir + "/" + assembly + "/genic_elements.utr5.bed",
-            'bed_cds':datadir + "/" + assembly + "/genic_elements.cds.bed",
-            'bed_utr3':datadir + "/" + assembly + "/genic_elements.utr3.bed"}
+            'gtf_polya':datadir  + "/" + assembly + "/genes-polya.gtf",
+            'bed_mrna':datadir   + "/" + assembly + "/genic_elements.mrna.bed",
+            'bed_ncrna':datadir  + "/" + assembly + "/genic_elements.ncrna.bed",
+            'bed_utr5':datadir   + "/" + assembly + "/genic_elements.utr5.bed",
+            'bed_cds':datadir    + "/" + assembly + "/genic_elements.cds.bed",
+            'bed_utr3':datadir   + "/" + assembly + "/genic_elements.utr3.bed"}
 
 
 def get_libtype(libtypes, sample):
@@ -78,6 +78,12 @@ def get_cutadapt_settings(libtypes, adapters, sample):
             'overlap':adapters[libtypes[sample]]['overlap'],
             'minlen':adapters[libtypes[sample]]['minlen'],
             'errorrate':adapters[libtypes[sample]]['errorrate']}
+
+
+# Get mem requirements for Samtools sort - Samtools sort uses mem per thread, not total mem
+samtools_sort_mb=768
+def get_mem_mb(wildcards, threads):
+    return samtools_sort_mb * threads
 
 
 ##### read config #####
@@ -118,17 +124,21 @@ include: "rules/qc-post.smk"
 
 
 ##### target files #####
-TARGETS = ["log/cutadapt.lens.pdf",
+#REFS = ["hg38/genic_elements.cds.bed"]
+TARGETS = ["log/cutadapt.len.pdf",
+           "log/mapping-stats.genome.done",
            "log/mapping-stats.transcriptome.done",
            "log/reads.1.sanitize.toGenome.len.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
-           "log/reads.1.sanitize.adapt_trim.read-len.txt",
+           "log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
            "log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf"]
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf"
+            ]
 RESULTS = [""]
 
 ##### target rules #####
 rule all:
     input:
         expand(samplesdir + "/{sample}/{target}", sample=SAMPLES, target=TARGETS),
+#        expand(datadir + "/{ref}", ref=REFS),
 #        expand(resdir + "/{analysis}/{sample}/{result}", analysis="", sample=SAMPLES, result=RESULTS), # TODO

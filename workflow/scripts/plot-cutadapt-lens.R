@@ -9,7 +9,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 ### TESTING VARIABLES ###
 # args <- NULL
-# args <- "data/samples/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/cutadapt.lens.tsv"
+# args <- "data/samples/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/cutadapt.len.tsv"
 ### TESTING VARIABLES ###
 
 suppressPackageStartupMessages(library("dplyr"))

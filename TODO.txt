@@ -23,8 +23,19 @@
 - make selection of trimming/assignment based on output (rel5 vs rel3) in the input of the last rule and not sort of hardcoded like we have it now
     - right now, it somehow works for 5tera and tera3, but would fail for 5tera3
 - switch the input functions to unpack() https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#input-functions-and-unpack
-- add check in Snakemake to automatically select correct singularity image
->>> import subprocess
->>> str(subprocess.check_output("singularity --version", shell=True)).find(" 2.") != -1
->>> str(subprocess.check_output("singularity --version", shell=True)).find(" 3.") != -1
+
+
+- For Fadia
+    here's the corresponding figure numbers (in blue) for the analyses, no pressure please, the most important analysis is the ribothrypsis profile (point 1-2) this will at least give me an idea if chasing the treatment/KD/Kout is promising or not:
+
+    changes in ribothrypsis profile (5TERA- 5' ends of RPFs) under different treatments, and in KD, Kout of specific proteins. we will need public data for RPF comparison; you do have the RPFs of humans and yeast and I can lookup and share the SRA for differentiated mouse neurons. [Figure 6B, 5P-polyA; top]
+     The prevalence of ribothrypsis in mouse neurons. [Figure 6B, 5P-polyA; top]
+    Average read density distribution of molecule ends across annotated transcripts for each species. [Figure 1D, 5P-polyA]
+    Check if decay profile of genes with long exons varies compared to ones with short exons. New
+    Distrubution of 5' ends on specific transcripts with visualization of coverage and alignment of sequenced molecules. [Figure 2C]
+    The relatioship of 5'TERA and polyA tail length. [Figure 4B, 4C right plot]
+    Enrichment of G-quads downstream of cuts specially in mouse and yeast KD/kout. [this was done in ribothrypsis paper Figure 5A]
+    Relation of 5′ ends of native RNA molecules to transcription start sites and to active promoters. [Figure 2D]
+
+
 

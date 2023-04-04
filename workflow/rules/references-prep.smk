@@ -185,7 +185,7 @@ rule annotation_download:
         wget -qO- {params.link} \
             | gunzip -c \
             > {output}
-        ln -sf $(basename {output}) {params.datadir}/{wildcards.assembly}/$(basename {params.link} .gz)
+#        ln -sf $(basename {output}) {params.datadir}/{wildcards.assembly}/$(basename {params.link} .gz)
         '''
 
 rule annotation_clean:
@@ -223,10 +223,10 @@ rule annotation_elements:
         ln -sf $(basename {output[0]}) {output[1]}
         '''
 
-rule annotation_elements_extract:
+rule annotation_elements_extract_polya:
     input:
         datadir + "/{assembly}/genic_elements.bed",
-        datadir + "/{assembly}/genic_elements-total.bed",
+#        datadir + "/{assembly}/genic_elements-total.bed",
     output:
         multiext(datadir + "/{assembly}/genic_elements", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
         multiext(datadir + "/{assembly}/genic_elements-total", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
@@ -237,12 +237,12 @@ rule annotation_elements_extract:
         # Create separate files for each genic element
         for element in "utr5" "utr3" "cds" "ncrna" "mrna"; do
             if grep -P -q ":${{element}}\t" {input}; then
-                grep -P ":${{element}}\t" {input} > {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
+                grep ":${{element}}\t" {input} > {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
             else
                 touch {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
             fi
 
-            # Create separate files for each genic element - total RNA - just copy the same thing as for polyA
+            # Create separate files for each genic element - total RNA - just copy the same thing as for polyA for now
             ln -sf genic_elements.${{element}}.bed {params.datadir}/{wildcards.assembly}/genic_elements-total.${{element}}.bed
         done
         '''

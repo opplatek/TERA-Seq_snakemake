@@ -87,7 +87,9 @@ rule ribosomal_map_minimap2:
     params:
         k=12,
         secondary="yes",
-        mem_mb=768, # samtools sort sets -m per thread
+        mem_mb=samtools_sort_mb # samtools sort sets -m per thread; 768 is default
+    resources:
+        mem_mb=get_mem_mb
     threads: 32
     shell:
         '''

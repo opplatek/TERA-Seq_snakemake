@@ -13,9 +13,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Set default shell
 SHELL ["/bin/bash", "-c"]
 
-### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++ and zlib1g-dev are required only for Nanopolish
+### System-wide requirements; cpanminus is not required if Perl uses virtual environment method; g++, zlib1g-dev, and bzip2 are required only for Nanopolish
 RUN apt-get update \
-    && apt-get install -y git gcc make wget g++ zlib1g-dev cpanminus curl bzip2 \
+    && apt-get install -y git gcc make wget g++ zlib1g-dev bzip2 \
 	locales language-pack-en && locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales \
     && rm -rf /var/lib/apt/lists/*
 
@@ -64,8 +64,8 @@ RUN sed -i 's/-Xmx250m/-Xmx5g/g' /usr/local/miniconda3/envs/teraseq/opt/fastqc-*
 
 #ENV PATH="${PATH}:/usr/local/miniconda3/envs/teraseq/bin"
 
-RUN ln -s /usr/local/miniconda3/envs/teraseq/bin/R /bin/R
-#   \ && ln -s /usr/local/miniconda3/envs/teraseq/bin/curl /bin/curl
+RUN ln -s /usr/local/miniconda3/envs/teraseq/bin/R /bin/R \
+    && ln -s /usr/local/miniconda3/envs/teraseq/bin/curl /bin/curl
 
 ### Save default Conda path
 RUN sed -i '/CONDA_PREFIX/d' /usr/local/TERA-Seq_manuscript/PARAMS.sh \
@@ -153,8 +153,8 @@ RUN git clone --recursive https://github.com/jts/nanopolish.git \
 SHELL ["conda", "run", "-n", "teraseq", "/bin/bash", "-c"]
 
 ## GeneCycle
-# TODO: Install specific version of R package https://support.posit.co/hc/en-us/articles/219949047-Installing-older-versions-of-packages
-RUN Rscript -e 'install.packages("GeneCycle", repos="https://cloud.r-project.org")'
+#RUN Rscript -e 'install.packages("GeneCycle", repos="https://cloud.r-project.org")'
+RUN Rscript -e 'install.packages(c("longitudinal", "fdrtool"), repos = "http://cran.us.r-project.org"); install.packages("https://cran.r-project.org/src/contrib/GeneCycle_1.1.5.tar.gz", repos=NULL, type="source")'
 
 ## Cutadapt
 RUN mkdir cutadapt-2.5 \
