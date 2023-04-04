@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 
 # LABEL about the custom image
 LABEL maintainer="jan.oppelt@pennmedicine.upenn.edu"
-LABEL version="0.1"
+LABEL version="0.3"
 LABEL description="This is custom Docker Image for \
 analysis of TERA-Seq publication (DOI: https://doi.org/10.1093/nar/gkab713) using Snakemake and Singularity."
 

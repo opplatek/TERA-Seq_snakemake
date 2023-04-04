@@ -162,11 +162,15 @@ rule total_mapped_genome_length_plot:
         read_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf",
+    params:
+        len_cap=5000,        
     shell:
         '''
         {activ_conda}
 
-        ./workflow/scripts/plot-aligned-vs-fastq-length.R {input.total_len} {input.read_len} {output}
+        ./workflow/scripts/plot-aligned-vs-fastq-length.R \
+            {input.total_len} {input.read_len} {params.len_cap} \
+            {output}
         '''
 
 use rule total_mapped_genome_length_plot as total_mapped_transcriptome_length_plot with:
@@ -189,7 +193,9 @@ rule mapped_length_genome_plot:
         '''
         {activ_conda}
 
-        ./workflow/scripts/plot-aligned-length.R {input.read_len} {input.mapped_len} {params.len_cap} {output}
+        ./workflow/scripts/plot-aligned-length.R \
+            {input.read_len} {input.mapped_len} {params.len_cap} \
+            {output}
         '''
 
 use rule mapped_length_genome_plot as mapped_length_transcriptome_plot with:
