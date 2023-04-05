@@ -32,7 +32,6 @@ RUN git clone https://github.com/mourelatos-lab/TERA-Seq_manuscript.git
 ### Install Miniconda3
 ENV PATH "/usr/local/miniconda3/bin:${PATH}"
 ARG PATH="/usr/local/miniconda3/bin:${PATH}"
-RUN echo ${PATH}
 
 RUN wget \
     https://repo.anaconda.com/miniconda/Miniconda3-py37_23.1.0-1-Linux-x86_64.sh -O Miniconda3.sh \
@@ -44,9 +43,11 @@ RUN wget \
 ## Install Mamba for faster installation
 #RUN conda install -c conda-forge mamba
 
-# Get Conda yml and install environment
-#RUN mamba env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml
-RUN conda env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml
+# Get Conda yml and install environment & Set permissions the same for all users to avoid Singularity "issue" with running as root (Docker) vs running as user who executed the command (Singularity)
+#RUN mamba env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml \
+#    && chmod -R a=u /usr/local/miniconda3
+RUN conda env create -f /usr/local/TERA-Seq_manuscript/teraseq-env.yml \
+    && chmod -R a=u /usr/local/miniconda3
 
 ### Fix error when using preinstalled Conda envs activation inside a Singularity container (https://gitlab.univ-nantes.fr/bird_pipeline_registry/srp-pipeline/-/tree/b5c1ac5e4f2449605701040484b0905028a74767#Troubleshooting or https://github.com/conda/conda/issues/8186)
 #       /usr/local/miniconda3/envs/teraseq/etc/conda/activate.d/activate-binutils_linux-64.sh: line 67: HOST: unbound variable
@@ -71,13 +72,14 @@ RUN ln -s /usr/local/miniconda3/envs/teraseq/bin/R /bin/R \
 RUN sed -i '/CONDA_PREFIX/d' /usr/local/TERA-Seq_manuscript/PARAMS.sh \
     && echo -e "CONDA_PREFIX=\"/usr/local/miniconda3\"" >> /usr/local/TERA-Seq_manuscript/PARAMS.sh
 
-# Set permissions the same for all users to avoid Singularity "issue" with running as root (Docker) vs running as user who executed the command (Singularity)
-RUN chmod -R a=u /usr/local/miniconda3
-
 ### Perl
 WORKDIR /usr/local/TERA-Seq_manuscript/tools
 
 ## Virtual environment install (option 2)
+# Export Conda perl lib path (mainly for local::lib module)
+ENV PERL5LIB "/usr/local/miniconda3/envs/teraseq/lib/site_perl/5.26.2/:${PERL5LIB}"
+ARG PERL5LIB="/usr/local/miniconda3/envs/teraseq/lib/site_perl/5.26.2/:${PERL5LIB}"
+
 RUN git clone https://github.com/jizhang/perl-virtualenv.git \
     && cd perl-virtualenv/ \
     && git reset f931774 --hard \
@@ -126,8 +128,8 @@ RUN git clone --recursive https://github.com/jts/nanopolish.git \
     && sed -i 's#http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2#https://gitlab.com/libeigen/eigen/-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2#' Makefile \
     && sed -i 's/tar -xjf $(EIGEN_VERSION).tar.bz2/tar -xjf eigen-$(EIGEN_VERSION).tar.bz2/' Makefile \
     && sed -i 's/eigen-eigen-\*/eigen-$(EIGEN_VERSION)/' Makefile \
-    && sed -i '27 i EIGEN_VERSION_MV ?= 'd9c80169e091a2c6e75ceb509f81764d22cf6a63 Makefile \
-    && sed -i 's/mv\ eigen-\$(EIGEN_VERSION)/mv\ eigen-\$(EIGEN_VERSION_MV)/' Makefile \
+#    && sed -i '27 i EIGEN_VERSION_MV ?= d9c80169e091a2c6e75ceb509f81764d22cf6a63' Makefile \
+#    && sed -i 's/mv\ eigen-\$(EIGEN_VERSION)/mv\ eigen-\$(EIGEN_VERSION_MV)/' Makefile \
     && rm -rf fast5 \
     && git clone https://github.com/mateidavid/fast5.git \
     && cd fast5/ \
@@ -194,7 +196,7 @@ RUN git clone "https://github.com/lindenb/jvarkit.git" \
 # Set permissions the same for all users to avoid Singularity "issue" with running as root (Docker) vs running as user who executed the command (Singularity)
 RUN chmod -R a=u /usr/local/TERA-Seq_manuscript/tools
 
-### Add utils dir to PATH
+# Add utils dir to PATH
 ENV PATH "/usr/local/TERA-Seq_manuscript/tools/utils:${PATH}"
 
 WORKDIR /usr/local/TERA-Seq_manuscript

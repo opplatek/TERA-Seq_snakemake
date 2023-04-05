@@ -53,7 +53,7 @@ rule mapped_genome:
         samplesdir + "/{sample}/log/annot_genome_adapt.done",
     output:
         samplesdir + "/{sample}/log/mapping-stats.genome.txt",
-        temp(samplesdir + "/{sample}/log/mapping-stats.genome.done"),
+        samplesdir + "/{sample}/log/mapping-stats.genome.done",
     shell:
         '''
         {activ_conda}
@@ -159,7 +159,7 @@ use rule mapped_length_genome as mapped_length_transcriptome with:
 rule total_mapped_genome_length_plot:
     input:
         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
-        read_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
+        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf",
     params:
@@ -169,22 +169,22 @@ rule total_mapped_genome_length_plot:
         {activ_conda}
 
         ./workflow/scripts/plot-aligned-vs-fastq-length.R \
-            {input.total_len} {input.read_len} {params.len_cap} \
+            {input.total_len} {input.mapped_len} {params.len_cap} \
             {output}
         '''
 
 use rule total_mapped_genome_length_plot as total_mapped_transcriptome_length_plot with:
     input:
         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
-        read_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
+        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf",
 
 
 rule mapped_length_genome_plot:
     input:
-        read_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
-        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
+        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
+        aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.pdf",
     params:
@@ -194,13 +194,13 @@ rule mapped_length_genome_plot:
         {activ_conda}
 
         ./workflow/scripts/plot-aligned-length.R \
-            {input.read_len} {input.mapped_len} {params.len_cap} \
+            {input.mapped_len} {input.aligned_len} {params.len_cap} \
             {output}
         '''
 
 use rule mapped_length_genome_plot as mapped_length_transcriptome_plot with:
     input:
-        read_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
-        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
+        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
+        aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",

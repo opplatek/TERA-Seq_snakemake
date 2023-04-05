@@ -5,7 +5,7 @@
 # Four arguments: length of mapped reads, length of mapped portion of reads, read length cap for the plot, output pdf file
 #
 
-library("rio")
+suppressPackageStartupMessages(library("rio"))
 
 args <- commandArgs(trailingOnly = TRUE)
 
