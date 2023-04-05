@@ -47,7 +47,8 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 
 * When installed, you can prepare the basic conda environment:
 ```
-cd /home/jan/projects/TERA-Seq_snakemake/
+git pull https://github.com/opplatek/TERA-Seq_snakemake
+cd TERA-Seq_snakemake/
 conda install mamba -n base -c conda-forge
 mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
 ```
@@ -74,8 +75,15 @@ singularity version
 ```
 
 ### Pull Singularity image from Docker hub
+In case you didn't install all the dependencies, you wiil definitely need to install `squashfs-tool` to build Singularity image from Docker hub.
 ```
-singularity pull docker://joppelt/teraseq:snakemake # If you have Singularity # If you have Singularity 2 (tested on 2.6.1-dist)
+# Export tmp and cache dir to avoid extensive writing into /root directory
+tmpdir=$(pwd)/tmp
+mkdir $tmpdir
+export SINGULARITY_TMPDIR=$tmpdir
+export SINGULARITY_CACHEDIR=$tmpdir
+
+singularity pull docker://joppelt/teraseq:snakemake # If you have Singularity # If you have Singularity 2 (tested on 2.6.1-dist); will make teraseq-snakemake.simg
 singularity pull teraseq-snakemake.sif docker://joppelt/teraseq:snakemake # If you have Singularity 2 (tested on singularity-ce version 3.11.1-bionic)
 ```
 

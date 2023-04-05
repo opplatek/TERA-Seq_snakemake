@@ -151,17 +151,17 @@ use rule mapped_length_genome as mapped_length_transcriptome with:
         read_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
         mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
     params:
-        flags="-F 4 -F 256 -F 2048 -f 16",
+        flags="-F 4 -F 256 -F 2048 -F 16",
         tmpdir=lambda wildcards, input: Path(input[0]).parent,
 
 
 # Plots
-rule total_mapped_genome_length_plot:
+rule total_aligned_genome_length_plot:
     input:
         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
-        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
+        aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf",
+        samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
     params:
         len_cap=5000,        
     shell:
@@ -169,16 +169,16 @@ rule total_mapped_genome_length_plot:
         {activ_conda}
 
         ./workflow/scripts/plot-aligned-vs-fastq-length.R \
-            {input.total_len} {input.mapped_len} {params.len_cap} \
+            {input.total_len} {input.aligned_len} {params.len_cap} \
             {output}
         '''
 
-use rule total_mapped_genome_length_plot as total_mapped_transcriptome_length_plot with:
+use rule total_aligned_genome_length_plot as total_aligned_transcriptome_length_plot with:
     input:
         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
-        mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
+        aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf",
+        samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf",
 
 
 rule mapped_length_genome_plot:

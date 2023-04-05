@@ -5,7 +5,7 @@
 # Note: This will not work very well for datasets with low number of reads
 # Note: "First to get 90% aligned length" is calculated from binned lengths (by 50 nt)
 #
-# Four arguments: input total length of trimmed (or raw) reads, only aligned read length, read length cap, output pdf
+# Four arguments: input total length of trimmed (or raw) reads, only mapped read part length, read length cap, output pdf
 #
 
 suppressPackageStartupMessages(library("rio"))
@@ -14,8 +14,8 @@ suppressPackageStartupMessages(library("dplyr"))
 args <- commandArgs(trailingOnly = TRUE)
 
 # args <- NULL
-# args <- c("/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz", # Trimme fastq read length (incl. unmapped)
-#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz", # Whole mapped read length
+# args <- c("/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz", # Trimmed fastq read length (incl. unmapped)
+#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz", # Mapped read part
 #           5000,  # Maximum read length for plotting
 #           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf")
 
@@ -29,21 +29,21 @@ aligned_len <- rio::import(aligned_len, format = "tsv")
 
 if (nrow(total_len) == 0 | nrow(aligned_len) == 0) {
   pdf(ofile)
-  par(mar = c(0, 0, 0, 0))
-  plot(c(0, 1), c(0, 1), ann = F, bty = "n", type = "n", xaxt = "n", yaxt = "n")
-  text(
-    x = 0.5, y = 0.5, paste("Either\n", args[1], "\nor\n", args[2], "\ndidn't contain any lines. Please check the input files."),
-    cex = 1, col = "black"
-  )
+    par(mar = c(0, 0, 0, 0))
+    plot(c(0, 1), c(0, 1), ann = F, bty = "n", type = "n", xaxt = "n", yaxt = "n")
+    text(
+      x = 0.5, y = 0.5, paste("Either\n", args[1], "\nor\n", args[2], "\ndidn't contain any lines. Please check the input files."),
+      cex = 1, col = "black"
+    )
   dev.off()
 } else {
-  aligned_len <- aligned_len[aligned_len$length != 1, ] # Reads with length 1 are usually secondary alignments which have "*" instead of read sequence
+#  aligned_len <- aligned_len[aligned_len$length != 1, ] # Reads with length 1 are usually secondary alignments which have "*" instead of read sequence
 
   colnames(total_len)[colnames(total_len) == "length"] <- "total_length"
   colnames(aligned_len)[colnames(aligned_len) == "length"] <- "aln_length"
 
-  len <- merge(total_len, aligned_len, all.x = T, by = "read_id")
-  len[is.na(len)] <- 0
+  len <- merge(total_len, aligned_len, all.x = TRUE, by = "read_id")
+  len$aln_length[is.na(len$aln_length)] <- 1 # These will have ratios values ~0
 
   # Get median length
   med_tot <- median(len$total_length, na.rm = T) # Expand the frequency tab
