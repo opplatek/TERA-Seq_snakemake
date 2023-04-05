@@ -1,3 +1,4 @@
+- write documentation!
 - finish tera3 preprocessing (we only have adapter trimming, but nothing else)
 - cut Dockerfile to complete minimum only necessary for the Snakemake+Singularity run
 - Note: Snakemake cannot handle having two rules outputing the same output file name. It makes sense, this is how it's designed. But it makes it incompatible with sqldb databases
