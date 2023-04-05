@@ -63,7 +63,7 @@ mamba env create -n tera-snakemake \
 
 Note: To update to new *version* of TERA-Seq Snakemake, you can go:
 ```
-cd TERA-Seq_snakemake
+cd TERA-Seq_snakemake/
 git fetch
 ```
 This will download new and updated file and will keep your own files (compared to `git pull` which would delete your local files.
