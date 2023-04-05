@@ -47,7 +47,7 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 
 * When installed, you can prepare the basic conda environment:
 ```
-git pull https://github.com/opplatek/TERA-Seq_snakemake
+git clone https://github.com/opplatek/TERA-Seq_snakemake
 cd TERA-Seq_snakemake/
 conda install mamba -n base -c conda-forge
 mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
@@ -60,6 +60,13 @@ mamba env create -n tera-snakemake \
 ```
 
 `pygments jinja2 networkx pygraphviz` are not essential and are only use for reports (can be skipped)
+
+Note: To update to new *version* of TERA-Seq Snakemake, you can go:
+```
+cd TERA-Seq_snakemake
+git fetch
+```
+This will download new and updated file and will keep your own files (compared to `git pull` which would delete your local files.
 
 #### Install Singularity
 **Important:** Installing Singularity in Conda doesn't work well. The system doesn't see it as a root installation and converts all Singularity containers (.sif) into a sandbox for **every** Snakemake output.
