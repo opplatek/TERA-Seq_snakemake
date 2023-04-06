@@ -1,4 +1,4 @@
--move "scripts" into real scripts, could be bash, with sourcing the perl/conda inside the sh scripts (or python with from snakemake.shell import shell)
+- extend sc3 annotation by N-nucleotides on both sides because we see the annotation is not very good
 
 - write documentation!
 - finish tera3 preprocessing (we only have adapter trimming, but nothing else)

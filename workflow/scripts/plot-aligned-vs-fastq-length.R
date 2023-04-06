@@ -1,28 +1,30 @@
 #!/usr/bin/env Rscript
 #
-# Compare length of all reads vs mapped reads (binned by 50 nt) and the first bin to reach 90% of mapped reads
+# Compare length of all reads vs aligned read portion (binned by 50 nt) and the first bin to reach 90% of aligned read portion
 #
 # Note: This will not work very well for datasets with low number of reads
 # Note: "First to get 90% aligned length" is calculated from binned lengths (by 50 nt)
 #
-# Four arguments: input total length of trimmed (or raw) reads, only mapped read part length, read length cap, output pdf
+# Four arguments: input whole length of trimmed (or raw) reads, only aligned read part length, read length cap, output pdf
 #
 
 suppressPackageStartupMessages(library("rio"))
 suppressPackageStartupMessages(library("dplyr"))
 
-args <- commandArgs(trailingOnly = TRUE)
+#args <- commandArgs(trailingOnly = TRUE)
 
 # args <- NULL
 # args <- c("/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz", # Trimmed fastq read length (incl. unmapped)
-#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz", # Mapped read part
+#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz", # Aligned read part
 #           5000,  # Maximum read length for plotting
-#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.len.trim-vs-mapped.pdf")
+#           "/home/jan/projects/mourelatos11/playground/TERA-Seq_snakemake/datadir/samps/hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf")
 
-total_len <- args[1]
-aligned_len <- args[2]
-read_cap <- as.numeric(args[3])
-ofile <- args[4]
+total_len <- snakemake@input[["total_len"]] # args[1]
+aligned_len <- snakemake@input[["aligned_len"]] # args[2]
+read_cap <- snakemake@params[["len_cap"]] # as.numeric(args[3])
+ofile <- snakemake@output[[1]] # args[4]
+
+read_cap <- as.numeric(read_cap)
 
 total_len <- rio::import(total_len, format = "tsv")
 aligned_len <- rio::import(aligned_len, format = "tsv")
@@ -32,7 +34,7 @@ if (nrow(total_len) == 0 | nrow(aligned_len) == 0) {
     par(mar = c(0, 0, 0, 0))
     plot(c(0, 1), c(0, 1), ann = F, bty = "n", type = "n", xaxt = "n", yaxt = "n")
     text(
-      x = 0.5, y = 0.5, paste("Either\n", args[1], "\nor\n", args[2], "\ndidn't contain any lines. Please check the input files."),
+      x = 0.5, y = 0.5, paste("Either\n", snakemake@input[["total_len"]], "\nor\n", snakemake@input[["aligned_len"]], "\ndidn't contain any lines. Please check the input files."),
       cex = 1, col = "black"
     )
   dev.off()
@@ -76,8 +78,8 @@ if (nrow(total_len) == 0 | nrow(aligned_len) == 0) {
       x = len$total_length, y = len$ratio,
       axes = F,
       cex = 0.2, col = "red",
-      xlab = "Read length", ylab = "Perc. of aligned",
-      main = paste0("Mapped vs All read length ratios\n", "Median length - All: ", med_tot, "; Mapped total: ", med_aln, "\nFirst len. to have >=90% mapped: ", paste0(c(first_ninety - bin_len, first_ninety), collapse = "-"), " nt")
+      xlab = "Read length", ylab = "Ratio of Aligned/Whole length",
+      main = paste0("Aligned vs Whole read length ratios\n", "Median length - Whole: ", med_tot, "; Aligned: ", med_aln, "\nFirst len. to have >=90% aligned: ", paste0(c(first_ninety - bin_len, first_ninety), collapse = "-"), " nt")
     )
     #  axis(1, at = seq(0, xmax, by = 250), labels = seq(0, xmax, by = 250))
     axis(1, at = seq(0, read_cap, by = 200), labels = seq(0, read_cap, by = 200))
@@ -86,7 +88,7 @@ if (nrow(total_len) == 0 | nrow(aligned_len) == 0) {
     abline(h = mean(len$ratio), col = "black", lty = 2)
     abline(h = median(len$ratio), col = "black")
     legend("center",
-      legend = c("Mapped/All ratio", "Ratio mean", "Ratio median", ">=90% mapped"),
+      legend = c("Aligned/Whole ratio", "Ratio mean", "Ratio median", ">=90% aligned"),
       col = c("red", "black", "black", "blue"), pch = c(20, NA, NA, NA), lty = c(NA, 2, 1, 3), lwd = c(NA, 1, 1, 1)
     )
   dev.off()

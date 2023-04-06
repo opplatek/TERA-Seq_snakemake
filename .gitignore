@@ -4,6 +4,7 @@ logs/**
 .snakemake
 .snakemake/**
 *.sif
+*.simg
 *.tar
 test*
 *bckp

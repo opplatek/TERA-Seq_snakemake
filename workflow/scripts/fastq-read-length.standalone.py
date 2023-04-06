@@ -8,8 +8,8 @@ import os
 import sys
 import gzip
 
-def parse_fastq(ifile):
-    with gzip.open(ifile, 'rb') if ifile != "-" else sys.stdin as f:
+def parse_fastq(filename):
+    with gzip.open(filename, 'rb') if filename != "-" else sys.stdin as f:
         while True:
             # Read four lines at a time to extract one fastq entry
             name = f.readline().strip()
@@ -21,13 +21,16 @@ def parse_fastq(ifile):
             # Yield the read name and length
             yield str(name, 'utf-8')[1:], len(sequence)
 
+
 usage = "Usage: python3 " + os.path.basename(__file__) + " fastq.gz. Use \"-\" for stdin (requires fastq)."
 
-ifile=snakemake.input[0]
-ofile=snakemake.output[0]
 
-with gzip.open(ofile, 'wb') as out:
-    out.write(("read_id" + "\t" + "length\n").encode())
+if len(sys.argv) != 2:
+    print(usage)
+else:
+    filename=sys.argv[1]
 
-    for name, length in parse_fastq(ifile):
-        out.write(f"{name}\t{length}\n".encode())
+    #filename = '/home/jan/playground/TERA-Seq_snakemake/data/samples/sc.test.1/fastq/reads.1.fastq.gz'
+    print("read_id" + "\t" + "length")
+    for name, length in parse_fastq(filename):
+        print(f"{name}\t{length}")

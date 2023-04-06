@@ -5,7 +5,7 @@
 # Two arguments - input parsed Cutadapt tsv (you can use parse-cutadapt-lens.py), output pdf
 #
 
-args <- commandArgs(trailingOnly = TRUE)
+# args <- commandArgs(trailingOnly = TRUE)
 
 ### TESTING VARIABLES ###
 # args <- NULL
@@ -16,7 +16,10 @@ suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("reshape2"))
 suppressPackageStartupMessages(library("ggplot2"))
 
-trimming <- read.table(args[1], sep = "\t", header = T) %>%
+ifile <- snakemake@input[[1]] # args[1]
+ofile <- snakemake@output[[1]] # args[2]
+
+trimming <- read.table(ifile, sep = "\t", header = T) %>%
   select("library", "length", "count")
 
 trimming.m <- reshape2::melt(trimming, id.vars = c("length", "library"), value.name = "count")
@@ -51,6 +54,6 @@ p <- p +
 #  geom_vline(xintercept = 58, color = "grey") + # for 5tera-long
   theme(plot.title = element_text(hjust = 0.5))
 
-pdf(args[2])
+pdf(ofile)
   print(p)
 dev.off()

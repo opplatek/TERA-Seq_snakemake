@@ -134,10 +134,11 @@ include: "rules/qc-post.smk"
 ##### target files #####
 #REFS = ["hg38/genic_elements.cds.bed"]
 TARGETS = ["log/cutadapt.len.pdf",
+           "align/reads.1.sanitize.toGenome.sorted.bam.bai",
            "log/mapping-stats.genome.done",
            "log/mapping-stats.transcriptome.done",
-           "log/reads.1.sanitize.toGenome.len.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
+           "log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
            "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
             ]

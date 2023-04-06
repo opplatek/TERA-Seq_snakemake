@@ -1,16 +1,36 @@
+# rule cutadapt_parse_lens:
+#     input:
+#         samplesdir + "/{sample}/log/cutadapt.log",
+#     output:
+#         samplesdir + "/{sample}/log/cutadapt.len.tsv",
+#     shell:
+#         '''
+#         {activ_conda}
+#
+#         python3 workflow/scripts/parse-cutadapt-lens.py {input} {wildcards.sample} > {output}
+#         '''
+
+
 rule cutadapt_parse_lens:
     input:
         samplesdir + "/{sample}/log/cutadapt.log",
     output:
         samplesdir + "/{sample}/log/cutadapt.len.tsv",
-    shell:
-        '''
-        {activ_conda}
+    script:
+        "../scripts/parse-cutadapt-lens.py"
 
-        echo $(pwd)
 
-        python3 workflow/scripts/parse-cutadapt-lens.py {input} {wildcards.sample} > {output}
-        '''
+# rule cutadapt_plot_lens:
+#     input:
+#         samplesdir + "/{sample}/log/cutadapt.len.tsv",
+#     output:
+#         samplesdir + "/{sample}/log/cutadapt.len.pdf",
+#     shell:
+#         '''
+#         {activ_conda}
+
+#         workflow/scripts/plot-cutadapt-lens.R {input} {output}
+#         '''
 
 
 rule cutadapt_plot_lens:
@@ -18,14 +38,31 @@ rule cutadapt_plot_lens:
         samplesdir + "/{sample}/log/cutadapt.len.tsv",
     output:
         samplesdir + "/{sample}/log/cutadapt.len.pdf",
-    shell:
-        '''
-        {activ_conda}
+    script:
+        "../scripts/plot-cutadapt-lens.R"
 
-        workflow/scripts/plot-cutadapt-lens.R {input} {output}
-        '''
 
 ### Mapping statistics
+# rule mapped_transcriptome:
+#     input:
+#         samplesdir + "/{sample}/db/sqlite.db",
+# #        samplesdir + "/{sample}/log/annot_trans_rel5.done",
+#         samplesdir + "/{sample}/log/annot_trans_adapt.done",
+#         samplesdir + "/{sample}/log/annot_genome_adapt.done",
+#     output:
+#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
+#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
+#     params:
+#         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
+#     shell:
+#         '''
+#         {activ_conda}
+
+#         workflow/scripts/mapping-stats-transcriptome.sh {input[0]} {params.libtype} > {output[0]} && \
+#         touch {output[1]}
+#         '''
+
+
 rule mapped_transcriptome:
     input:
         samplesdir + "/{sample}/db/sqlite.db",
@@ -37,14 +74,27 @@ rule mapped_transcriptome:
         samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
     params:
         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
-    shell:
-        '''
-        {activ_conda}
+    script:
+        "../scripts/mapping-stats-transcriptome.sh"
 
-        workflow/scripts/mapping-stats-transcriptome.sh {input[0]} {params.libtype} > {output[0]} && \
-        touch {output[1]}
-        '''
 
+# rule mapped_genome:
+#     input:
+#         samplesdir + "/{sample}/db/sqlite.db",
+#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
+# #        samplesdir + "/{sample}/log/annot_genome_rel5.done",
+#         samplesdir + "/{sample}/log/annot_trans_adapt.done",
+#         samplesdir + "/{sample}/log/annot_genome_adapt.done",
+#     output:
+#         samplesdir + "/{sample}/log/mapping-stats.genome.txt",
+#         samplesdir + "/{sample}/log/mapping-stats.genome.done",
+#     shell:
+#         '''
+#         {activ_conda}
+
+#         workflow/scripts/mapping-stats-genome.sh {input[0]} > {output[0]} && \
+#         touch {output[1]}
+#         '''
 
 rule mapped_genome:
     input:
@@ -56,13 +106,8 @@ rule mapped_genome:
     output:
         samplesdir + "/{sample}/log/mapping-stats.genome.txt",
         samplesdir + "/{sample}/log/mapping-stats.genome.done",
-    shell:
-        '''
-        {activ_conda}
-
-        workflow/scripts/mapping-stats-genome.sh {input[0]} > {output[0]} && \
-        touch {output[1]}
-        '''
+    script:
+        "../scripts/mapping-stats-genome.sh"
 
 
 ### Read lengths
@@ -87,6 +132,20 @@ rule read_length_hist_all:
         '''
 
 
+# rule read_length_hist_all_parse:
+#     input:
+#         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len-hist.txt",
+#     output:
+#         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len-hist.tsv",
+#     params:
+#         keepzero=False,
+#     shell:
+#         '''
+#         python3 workflow/scripts/parse-bbmap-lens.py {input} {wildcards.sample} {params.keepzero} \
+#             > {output}
+#         '''
+
+
 rule read_length_hist_all_parse:
     input:
         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len-hist.txt",
@@ -94,27 +153,31 @@ rule read_length_hist_all_parse:
         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len-hist.tsv",
     params:
         keepzero=False,
-    shell:
-        '''
-        python3 workflow/scripts/parse-bbmap-lens.py {input} {wildcards.sample} {params.keepzero} \
-            > {output}
-        '''
-
+    script:
+        "../scripts/parse-bbmap-lens.py"
+        
 
 # Trimmed fastq lengths - per read (read-len.tsv)
+# rule read_length_all:
+#     input:
+#         samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
+#     output:
+#         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",    
+#     shell:
+#         '''
+#         {activ_conda}
+#
+#         python3 workflow/scripts/fastq-read-length.py {input} | gzip -c > {output}
+#         '''
+
+
 rule read_length_all:
     input:
         samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",    
-    shell:
-        '''
-        {activ_conda}
-
-        echo $(pwd)
-
-        python3 workflow/scripts/fastq-read-length.py {input} | gzip -c > {output}
-        '''
+    script:
+        "../scripts/fastq-read-length.py"
 
 
 # Mapped total length (read-len.tsv) and only the mapped portion (mapped-len.tsv)
@@ -160,6 +223,24 @@ use rule mapped_length_genome as mapped_length_transcriptome with:
 
 
 # Plots
+# rule total_aligned_genome_length_plot:
+#     input:
+#         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
+#         aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
+#     output:
+#         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
+#     params:
+#         len_cap=5000,        
+#     shell:
+#         '''
+#         {activ_conda}
+
+#         workflow/scripts/plot-aligned-vs-fastq-length.R \
+#             {input.total_len} {input.aligned_len} {params.len_cap} \
+#             {output}
+#         '''
+
+
 rule total_aligned_genome_length_plot:
     input:
         total_len=samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
@@ -168,14 +249,9 @@ rule total_aligned_genome_length_plot:
         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
     params:
         len_cap=5000,        
-    shell:
-        '''
-        {activ_conda}
+    script:
+        "../scripts/plot-aligned-vs-fastq-length.R"
 
-        workflow/scripts/plot-aligned-vs-fastq-length.R \
-            {input.total_len} {input.aligned_len} {params.len_cap} \
-            {output}
-        '''
 
 use rule total_aligned_genome_length_plot as total_aligned_transcriptome_length_plot with:
     input:
@@ -185,26 +261,39 @@ use rule total_aligned_genome_length_plot as total_aligned_transcriptome_length_
         samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf",
 
 
+# rule mapped_length_genome_plot:
+#     input:
+#         mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
+#         aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
+#     output:
+#         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
+#     params:
+#         len_cap=5000,
+#     shell:
+#         '''
+#         {activ_conda}
+
+#         workflow/scripts/plot-aligned-length.R \
+#             {input.mapped_len} {input.aligned_len} {params.len_cap} \
+#             {output}
+#         '''
+
+
 rule mapped_length_genome_plot:
     input:
         mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapped-len.full.tsv.gz",
         aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.align-len.full.tsv.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.pdf",
+        samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
     params:
         len_cap=5000,
-    shell:
-        '''
-        {activ_conda}
+    script:
+        "../scripts/plot-aligned-length.R"
 
-        workflow/scripts/plot-aligned-length.R \
-            {input.mapped_len} {input.aligned_len} {params.len_cap} \
-            {output}
-        '''
 
 use rule mapped_length_genome_plot as mapped_length_transcriptome_plot with:
     input:
         mapped_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapped-len.full.tsv.gz",
         aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
+        samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
