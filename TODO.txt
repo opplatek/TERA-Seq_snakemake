@@ -1,3 +1,5 @@
+-move "scripts" into real scripts, could be bash, with sourcing the perl/conda inside the sh scripts (or python with from snakemake.shell import shell)
+
 - write documentation!
 - finish tera3 preprocessing (we only have adapter trimming, but nothing else)
 - cut Dockerfile to complete minimum only necessary for the Snakemake+Singularity run

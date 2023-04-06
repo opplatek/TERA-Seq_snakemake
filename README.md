@@ -50,11 +50,11 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 git clone https://github.com/opplatek/TERA-Seq_snakemake
 cd TERA-Seq_snakemake/
 conda install mamba -n base -c conda-forge
-mamba env create -f environment.yaml -n tera-snakemake # If you don't have mamba, replace it with conda
+mamba env create -f environment.yaml -n teraseq-snakemake # If you don't have mamba, replace it with conda
 ```
 or from *scratch*:
 ```
-mamba env create -n tera-snakemake \
+mamba env create -n teraseq-snakemake \
     -c conda-forge -c bioconda -c anaconda -c r \
     python=3.7.1 snakemake-minimal=7.24.0 pandas pygments jinja2 networkx pygraphviz # If you don't have mamba, replace it with conda
 ```
@@ -85,19 +85,21 @@ singularity version
 In case you didn't install all the dependencies, you wiil definitely need to install `squashfs-tool` to build Singularity image from Docker hub.
 ```
 # Export tmp and cache dir to avoid extensive writing into /root directory
-tmpdir=$(pwd)/tmp
+tmpdir=$(pwd)
 mkdir $tmpdir
 export SINGULARITY_TMPDIR=$tmpdir
 export SINGULARITY_CACHEDIR=$tmpdir
 
 singularity pull docker://joppelt/teraseq:snakemake # If you have Singularity # If you have Singularity 2 (tested on 2.6.1-dist); will make teraseq-snakemake.simg
-singularity pull teraseq-snakemake.sif docker://joppelt/teraseq:snakemake # If you have Singularity 2 (tested on singularity-ce version 3.11.1-bionic)
+singularity pull teraseq_snakemake.sif docker://joppelt/teraseq:snakemake # If you have Singularity 2 (tested on singularity-ce version 3.11.1-bionic)
 ```
+It's possible the image will be built in the `tmp/` directory if you changed `SINGULARITY_TMPDIR`. You might have to move it to the TERA-Seq\_snakemake dir. 
+
 
 ### Run the pipeline
 **Important:** If you have Singularity 2.x.x (tested on 2.6.1), change ##### Define container ##### in Snakefile to Singularity 2 version (`singularity: "teraseq-snakemake.simg"`)
 ```
-conda activate tera-snakemake
+conda activate teraseq-snakemake
 snakemake --use-singularity -c1 -p --configfile config/config-test.yaml
 ```
   
@@ -105,3 +107,4 @@ snakemake --use-singularity -c1 -p --configfile config/config-test.yaml
 * How to run different Conda environments within the Singularity?
     * I like to pre-generate all Conda envs Snakemake workflow needs - can this be done in Singularity? I guess you would have to activate Conda on host, and then have pre-made Conda envs in the container and activate them in (?) Snakemake rule wrappers
 
+snakemake     --use-singularity -c 2 --directory /home/jan/playground/test --configfile config.yaml --snakefile /home/jan/playground/TERA-Seq_snakemake/workflow/Snakefile -p

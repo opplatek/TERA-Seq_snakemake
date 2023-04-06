@@ -7,6 +7,8 @@ rule cutadapt_parse_lens:
         '''
         {activ_conda}
 
+        echo $(pwd)
+
         python3 workflow/scripts/parse-cutadapt-lens.py {input} {wildcards.sample} > {output}
         '''
 
@@ -104,10 +106,12 @@ rule read_length_all:
     input:
         samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
+        samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",    
     shell:
         '''
         {activ_conda}
+
+        echo $(pwd)
 
         python3 workflow/scripts/fastq-read-length.py {input} | gzip -c > {output}
         '''
@@ -168,7 +172,7 @@ rule total_aligned_genome_length_plot:
         '''
         {activ_conda}
 
-        ./workflow/scripts/plot-aligned-vs-fastq-length.R \
+        workflow/scripts/plot-aligned-vs-fastq-length.R \
             {input.total_len} {input.aligned_len} {params.len_cap} \
             {output}
         '''
@@ -193,7 +197,7 @@ rule mapped_length_genome_plot:
         '''
         {activ_conda}
 
-        ./workflow/scripts/plot-aligned-length.R \
+        workflow/scripts/plot-aligned-length.R \
             {input.mapped_len} {input.aligned_len} {params.len_cap} \
             {output}
         '''

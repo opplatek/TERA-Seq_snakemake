@@ -8,6 +8,7 @@ import pandas as pd
 import yaml
 import subprocess
 import re
+import sys
 #import os
 
 
@@ -15,15 +16,22 @@ import re
 min_version("7.24.0")
 
 
+##### Snakefile path
+# We;ll use this for the Singularity container and script dirs
+#maindir=""
+
 ##### Define container #####
 # Probably not very robust but works for now
 singularity_version = str(subprocess.check_output("singularity --version", shell=True))
 if re.findall(r'\b2.', singularity_version) != []:
     singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
+elif re.findall(r'\b3.', singularity_version) != []:
+    singularity_container="teraseq_snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
 else:
-    singularity_container="teraseq-snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
+    sys.exit("Cannot determine Singularity container based on Singularity version. Please hard-code it into the Snakemake file. Singulariy version" + singularity_version)
 
 singularity: singularity_container
+
 
 ##### config file #####
 configfile: "config/config.yaml"
@@ -130,9 +138,8 @@ TARGETS = ["log/cutadapt.len.pdf",
            "log/mapping-stats.transcriptome.done",
            "log/reads.1.sanitize.toGenome.len.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
-           "log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
            "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf"
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
             ]
 RESULTS = [""]
 
