@@ -16,3 +16,4 @@ data
 tmp
 .Rhistory
 R-packages
+docker
