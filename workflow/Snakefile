@@ -52,6 +52,8 @@ def get_refs(datadir, assemblies, sample):
             'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
             'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
             'gtf_polya':datadir  + "/" + assembly + "/genes-polya.gtf",
+            'bed_rrna':datadir   + "/" + assembly + "/rRNA.bed",
+            'names_rrna':datadir   + "/" + assembly + "/rRNA.names.txt",
             'bed_mrna':datadir   + "/" + assembly + "/genic_elements.mrna.bed",
             'bed_ncrna':datadir  + "/" + assembly + "/genic_elements.ncrna.bed",
             'bed_utr5':datadir   + "/" + assembly + "/genic_elements.utr5.bed",

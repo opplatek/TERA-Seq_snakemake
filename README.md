@@ -107,4 +107,4 @@ snakemake --use-singularity -c1 -p --configfile config/config-test.yaml
 * How to run different Conda environments within the Singularity?
     * I like to pre-generate all Conda envs Snakemake workflow needs - can this be done in Singularity? I guess you would have to activate Conda on host, and then have pre-made Conda envs in the container and activate them in (?) Snakemake rule wrappers
 
-snakemake     --use-singularity -c 2 --directory /home/jan/playground/test --configfile config.yaml --snakefile /home/jan/playground/TERA-Seq_snakemake/workflow/Snakefile -p
+snakemake     --use-singularity -c 2 --snakefile ../TERA-Seq_snakemake/workflow/Snakefile --directory /home/jan/playground/test --configfile config.yaml -p
