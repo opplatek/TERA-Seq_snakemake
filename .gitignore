@@ -4,13 +4,17 @@ logs/**
 .snakemake
 .snakemake/**
 *.sif
+*.simg
 *.tar
 test*
 *bckp
 dev
 cache
 trash
+data*
 data
 tmp
 .Rhistory
 R-packages
+docker
+notes.md

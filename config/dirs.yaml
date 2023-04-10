@@ -1,6 +1,5 @@
-"datadir": "/home/jan/playground/TERA-Seq_snakemake/data"
+"datadir": "data"
 
-"samplesdir": "/home/jan/playground/TERA-Seq_snakemake/data/samples"
+"samplesdir": "data/samples"
 
-"resdir": "/home/jan/playground/TERA-Seq_snakemake/results"
-
+"resdir": "results"

@@ -22,7 +22,7 @@ rule map_trans_polya_minimap2:
             -a \
             -x map-ont \
             -k {params.k} \
-            -u f \
+            --for-only \
             -t {threads} \
             --secondary={params.secondary} \
             -p {params.sec_to_prim} \
@@ -34,6 +34,9 @@ rule map_trans_polya_minimap2:
         | samtools view -b - \
         | samtools sort -@ {threads} -m {params.mem_mb}M - \
         > {output.bam[0]}
+
+        # In the TERA-Seq paper, we used '-u f'. However, this doesn't mean the read alignment would be 'forced' to align to the forward strand (TERA-Seq is forward-strand specific)
+        # '--for-only' is the correct parameter for Minimap2 to consider only forward-strand alignments
 
         ln -sf $(basename {output.bam[0]}) \
             {output.bam[1]}

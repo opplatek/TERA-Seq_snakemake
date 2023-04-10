@@ -1,16 +1,20 @@
+- extend sc3 annotation by N-nucleotides on both sides because we see the annotation is not very good
+    - in ref_links.yaml we add extend_5utr and extend_3utr
+    - we will scan if this exist for the organisms
+    - we will adjust the very first gtf rule to check for the extensions - if they don't exist or are 0 or are NA we don't run the part of the code
+    - if they do, we extend the utr(s)
+    - we have to check separately for extend 5utr and extend extend_3utr
+
+- unify renaming of chromosomes (use ensemble2UCSC and replace in column python script)
+- figure out how to check for config value and if the value doesn't exist don't throw an error but set it to NA
 - write documentation!
 - finish tera3 preprocessing (we only have adapter trimming, but nothing else)
 - cut Dockerfile to complete minimum only necessary for the Snakemake+Singularity run
 - Note: Snakemake cannot handle having two rules outputing the same output file name. It makes sense, this is how it's designed. But it makes it incompatible with sqldb databases
-- test whole run of full fastq.gz
 - test STAR indexing and alignment; as of 03/22/2023 untested
 - consider switching from params: tmpdir in STAR indexing to output: temp(tmpdir), maybe with touch to a *deleteme* file inside the tempdir[]
 - set params: k for minimap2 indexing from the map_minimap2.smk as {k} so Snakemake fetches it automatically
 - in all ribosomal_map, change samtools -m {params.mem_mb} relative to some portion of max allowed memory relative to threads
-- move links to download references per reference from references-prep.smk to a config file
-- fetch main output dir for samples from config and change the rules to SAMPLES_DIR + ...
-- fetch data dir from config DATA_DIR + ...
-- unify naming of the rules
 - think about how to 'force' sqldb to not run at the same time other than 'xxx.done' files
 - add nanopolish to Snakemake rules if fast5 directory is specified in the config file
 - figure out how to access input: params: ... from the parent rule if we use use rule .. as ..: so we can only change what we need

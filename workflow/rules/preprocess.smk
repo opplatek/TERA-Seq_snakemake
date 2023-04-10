@@ -78,9 +78,7 @@ rule fastq_adapter_merge:
 
 rule ribosomal_map_minimap2:
     input:
-#        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
         fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
-#        mmi_wribo=datadir + "/hg38/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
         mmi_wribo=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['mmi_wribo']
     output:
         temp(samplesdir + "/{sample}/align/reads.1.sanitize.toEnsembl-transcripts-wRibo.sorted.bam"),
@@ -95,14 +93,12 @@ rule ribosomal_map_minimap2:
         '''
         {activ_conda}
 
-        echo {input.mmi_wribo}
-
         minimap2 \
             -a \
             -x map-ont \
             -k {params.k} \
             -p 1 \
-            -u f \
+            --for-only \
             -t {threads} \
             --secondary={params.secondary} \
             {input.mmi_wribo} \
@@ -110,12 +106,16 @@ rule ribosomal_map_minimap2:
         | samtools view -b - \
         | samtools sort -@ {threads} -m {params.mem_mb}M - \
             > {output}
+
+        # In the TERA-Seq paper, we used '-u f'. However, this doesn't mean the read alignment would be 'forced' to align to the forward strand (TERA-Seq is forward-strand specific)
+        # '--for-only' is the correct parameter for Minimap2 to consider only forward-strand alignmen
         '''
 
 
 rule ribosomal_extract:
     input:
-        samplesdir + "/{sample}/align/reads.1.sanitize.toEnsembl-transcripts-wRibo.sorted.bam",
+        bam=samplesdir + "/{sample}/align/reads.1.sanitize.toEnsembl-transcripts-wRibo.sorted.bam",
+        names_rrna=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['names_rrna'],
     output:
         sam=temp(samplesdir + "/{sample}/align/reads.1.sanitize.toRibosomal.sorted.sam"),
         ribo_names=temp(samplesdir + "/{sample}/align/reads.1.sanitize.toRibosomal.sorted.reads.txt"),
@@ -125,11 +125,11 @@ rule ribosomal_extract:
         '''
         {activ_conda}
 
-        samtools view -H {input} \
+        samtools view -H {input.bam} \
             > {output.sam}
 
-        samtools view -@ {threads} -F4 {input} \
-            | grep -v -P "\\tENST" \
+        samtools view -@ {threads} -F 4 {input.bam} \
+            | grep -wFf {input.names_rrna} \
             >> {output.sam}
 
         cat {output.sam} \

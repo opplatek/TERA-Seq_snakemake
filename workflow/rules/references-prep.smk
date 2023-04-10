@@ -1,27 +1,11 @@
 from pathlib import Path
 
-#def get_links(assembly):
-    # if assembly == "hg38":
-    #     return {'org':"Homo sapiens",
-    #             'link':"ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
-    #             'link_gtf':"ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz",
-    #             'gtrna':"http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz",
-    #             'gtrna_bed':datadir + "/{assembly}/hg38-tRNAs.bed"}
-    # elif assembly == "mm10":
-    #     return {'org':"Mus musculus",
-    #             'link':"ftp://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
-    #             'link_gft':"ftp://ftp.ensembl.org/pub/release-97/gtf/mus_musculus/Mus_musculus.GRCm38.97.gtf.gz"}
-
 ### SILVA rRNA
 rule silva_download:
     output:
-#        silva_lsu=temp(datadir + "/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz"),
-#        silva_ssu=temp(datadir + "/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz")
        silva_lsu=datadir + "/silva/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
        silva_ssu=datadir + "/silva/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
     params:
-#        link_lsu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz",
-#        link_ssu="https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz",
         link_lsu=REF_LINKS['silva']['lsu'],
         link_ssu=REF_LINKS["silva"]['ssu'],
     shell:
@@ -79,8 +63,6 @@ rule silva_extract:
     output:
         datadir + "/{assembly}/ribosomal.fa"
     params:
-#        org="Homo sapiens"
-#        org=lambda wildcards: get_links(wildcards.assembly)['org']
         org=lambda wildcards: REF_LINKS[wildcards.assembly]['org']
     shell:
         '''
@@ -146,8 +128,6 @@ rule genome_download:
     output:
         datadir + "/{assembly}/genome.fa",
     params:
-#        link="ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz",
-#        link=lambda wildcards: get_links(wildcards.assembly)['genome'],
         link=lambda wildcards: REF_LINKS[wildcards.assembly]['genome'],
     shell:
         '''
@@ -176,21 +156,43 @@ rule annotation_download:
     output:
         temp(datadir + "/{assembly}/ensembl_genes.orig.gtf")
     params:
-#        link_gtf="ftp://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
-#        link=lambda wildcards: get_links(wildcards.assembly)['gtf']
         link=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf'],
-        datadir=datadir,
     shell:
         '''
         wget -qO- {params.link} \
             | gunzip -c \
             > {output}
-#        ln -sf $(basename {output}) {params.datadir}/{wildcards.assembly}/$(basename {params.link} .gz)
         '''
+
+
+rule annotation_correct_extend_utr:
+    input:
+        gtf=datadir + "/{assembly}/ensembl_genes.orig.gtf",
+        fai=datadir + "/{assembly}/genome.fa.fai",
+    output:
+        temp(datadir + "/{assembly}/ensembl_genes.orig.extend-utr.gtf"),
+    params:
+        extend_fiveutr=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf_extend_fiveutr'],
+        extend_threeutr=lambda wildcards: REF_LINKS[wildcards.assembly]['gtf_extend_threeutr'],
+    script:        
+        "../scripts/extend-utr.R"
+
+
+# Note: Right no (04/07/2023) we only check for UTRs' extension but there could be more "corrections" later on
+rule annotation_correct_unify:
+    input:
+        datadir + "/{assembly}/ensembl_genes.orig.extend-utr.gtf",
+    output:
+        datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
+    shell:        
+        '''
+        cat {input} > {output}
+        '''
+
 
 rule annotation_clean:
     input:
-        datadir + "/{assembly}/ensembl_genes.orig.gtf"
+        datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf"
     output:
         datadir + "/{assembly}/genes-polya.gtf",
         datadir + "/{assembly}/genes.gtf",
@@ -208,20 +210,42 @@ rule annotation_clean:
             | clean-gtf-lines-total --gtf - \
             > {output[2]}
         '''
+             
 
-rule annotation_elements:
+# rule annotation_elements:
+#     input:
+#         datadir + "/{assembly}/genes.gtf"
+#     output:
+#         datadir + "/{assembly}/genic_elements.bed",
+#         datadir + "/{assembly}/genic_elements-total.bed",
+#     shell:
+#         '''
+#         gff-to-genic-elements-bed \
+#             --input {input} \
+#             > {output[0]}
+#         ln -sf $(basename {output[0]}) {output[1]}
+#         '''
+
+
+rule annotation_elements_polya:
     input:
         datadir + "/{assembly}/genes.gtf"
     output:
         datadir + "/{assembly}/genic_elements.bed",
+    script:
+        "../scripts/gff-to-genic-elements-bed.R"
+
+
+rule annotation_elements_total:
+    input:
+        datadir + "/{assembly}/genic_elements.bed",
+    output:
         datadir + "/{assembly}/genic_elements-total.bed",
     shell:
         '''
-        gff-to-genic-elements-bed \
-            --input {input} \
-            > {output[0]}
-        ln -sf $(basename {output[0]}) {output[1]}
+        ln -sf $(basename {input}) {output}
         '''
+
 
 rule annotation_elements_extract_polya:
     input:
@@ -252,7 +276,7 @@ rule transcripts_extract:
         genome=datadir + "/{assembly}/genome.fa",
         gtf=datadir + "/{assembly}/genes.gtf",
         gtf_total=datadir + "/{assembly}/genes-total.gtf",
-        gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.gtf",
+        gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
     output:
         trans=datadir + "/{assembly}/transcripts.fa",
         trans_total=datadir + "/{assembly}/transcripts-total.fa",
@@ -302,7 +326,7 @@ rule gtf_map_rrna:
 rule gtf_add_rrna:
     input:
         gtf_rrna=datadir + "/{assembly}/ribosomal.gmap.gtf",
-        gtf=datadir + "/{assembly}/ensembl_genes.orig.gtf",
+        gtf=datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
         genome=datadir + "/{assembly}/genome.fa",
     output:
         bed=datadir + "/{assembly}/rRNA.bed",
@@ -325,9 +349,19 @@ rule gtf_add_rrna:
         cat {output.gtf_worrna} {input.gtf_rrna} > {output.gtf_wrrna}
         (grep "^#" {output.gtf_wrrna}; grep -v "^#" {output.gtf_wrrna} | sort -k1,1 -k4,4n) > {output.gtf} # Add SILVA rRNA to Ensembl
         gzip -c {output.gtf} > {output.gtf_gz}
-        ln -sf {output.gtf_gz} $(dirname {output.gtf})/$(basename {params.link})
+        ln -sf $(basename {output.gtf_gz}) $(dirname {output.gtf})/$(basename {params.link})
 
         gffread -w {output.trans_wrrna} -g {input.genome} {output.gtf} # All the transcripts with rRNA
+        '''
+
+rule names_rrna:
+    input:
+        bed=datadir + "/{assembly}/rRNA.bed",
+    output:
+        names_rrna=datadir + "/{assembly}/rRNA.names.txt",
+    shell:
+        '''
+        cut -f4 {input} | sort | uniq > {output}
         '''
 
 ### Minimap2

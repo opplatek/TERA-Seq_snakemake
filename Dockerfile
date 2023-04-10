@@ -66,7 +66,9 @@ RUN sed -i 's/-Xmx250m/-Xmx5g/g' /usr/local/miniconda3/envs/teraseq/opt/fastqc-*
 #ENV PATH="${PATH}:/usr/local/miniconda3/envs/teraseq/bin"
 
 RUN ln -s /usr/local/miniconda3/envs/teraseq/bin/R /bin/R \
+    && ln -s /usr/local/miniconda3/envs/teraseq/bin/Rscript /bin/Rscript \
     && ln -s /usr/local/miniconda3/envs/teraseq/bin/curl /bin/curl
+ENV PATH "${PATH}:/usr/local/miniconda3/envs/teraseq/bin"
 
 ### Save default Conda path
 RUN sed -i '/CONDA_PREFIX/d' /usr/local/TERA-Seq_manuscript/PARAMS.sh \
@@ -117,6 +119,8 @@ RUN git clone --recursive https://github.com/genoo/GenOO.git perl-virtualenv/ter
 RUN . perl-virtualenv/teraseq/bin/activate \
     && cpanm --force CLIPSeqTools@0.1.9  \
     && cp -r /usr/local/TERA-Seq_manuscript/misc/GenOOx/* perl-virtualenv/teraseq/lib/perl5/GenOOx/
+
+ENV PERL5LIB "${PERL5LIB}:/usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/teraseq/lib/perl5/"
 
 ################################################################################
 ### Nanopolish

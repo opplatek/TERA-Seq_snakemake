@@ -36,7 +36,7 @@ echo "Running >>> ${analysis} <<< analysis with ${threads} threads with maximum 
 CONDA_PATH=$(dirname $(dirname $(echo $(readlink -f `which conda`))))
 source ${CONDA_PATH}/etc/profile.d/conda.sh
 
-conda activate tera-snakemake
+conda activate teraseq-snakemake
 ################################
 
 mkdir $reportdir

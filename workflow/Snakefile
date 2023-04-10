@@ -8,6 +8,7 @@ import pandas as pd
 import yaml
 import subprocess
 import re
+import sys
 #import os
 
 
@@ -15,19 +16,22 @@ import re
 min_version("7.24.0")
 
 
-##### Define container #####
-# Probably not very robust but works for now
-singularity_version = str(subprocess.check_output("singularity --version", shell=True))
-if re.findall(r'\b2.', singularity_version) != []:
-    singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
-else:
-    singularity_container="teraseq-snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
-
-singularity: singularity_container
-
 ##### config file #####
 configfile: "config/config.yaml"
 
+
+##### Define container #####
+# # Probably not very robust but works for now
+# singularity_version = str(subprocess.check_output("singularity --version", shell=True))
+# if re.findall(r'\b2.', singularity_version) != []:
+#     singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
+# elif re.findall(r'\b3.', singularity_version) != []:
+#     singularity_container="teraseq_snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
+# else:
+#     sys.exit("Cannot determine Singularity container based on Singularity version. Please hard-code it into the Snakemake file. Singulariy version" + singularity_version)
+
+#singularity: config['singular_containerdir'] + "/" + singularity_container
+singularity: config['singularity_container']
 
 ##### Functions to load virt environments in Singularity #####
 activ_perl="set +eu; . /usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/teraseq/bin/activate; set -eu"
@@ -44,6 +48,8 @@ def get_refs(datadir, assemblies, sample):
             'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
             'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
             'gtf_polya':datadir  + "/" + assembly + "/genes-polya.gtf",
+            'bed_rrna':datadir   + "/" + assembly + "/rRNA.bed",
+            'names_rrna':datadir   + "/" + assembly + "/rRNA.names.txt",
             'bed_mrna':datadir   + "/" + assembly + "/genic_elements.mrna.bed",
             'bed_ncrna':datadir  + "/" + assembly + "/genic_elements.ncrna.bed",
             'bed_utr5':datadir   + "/" + assembly + "/genic_elements.utr5.bed",
@@ -126,13 +132,13 @@ include: "rules/qc-post.smk"
 ##### target files #####
 #REFS = ["hg38/genic_elements.cds.bed"]
 TARGETS = ["log/cutadapt.len.pdf",
+           "align/reads.1.sanitize.toGenome.sorted.bam.bai",
            "log/mapping-stats.genome.done",
            "log/mapping-stats.transcriptome.done",
-           "log/reads.1.sanitize.toGenome.len.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.pdf",
-           "log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
+           "log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
            "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-mapped.pdf"
+           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
             ]
 RESULTS = [""]
 

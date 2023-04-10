@@ -1,7 +1,9 @@
 samples: config/samples.csv
 
-adapters: config/adapters.yaml
+dirs: config/dirs.yaml
+
+singularity_container: /home/jan/playground/TERA-Seq_snakemake/teraseq_snakemake.sif
 
 ref_links: config/ref_links.yaml
 
-dirs: config/dirs.yaml
+adapters: config/adapters.yaml
