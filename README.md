@@ -144,5 +144,6 @@ snakemake     --use-singularity -c 2 --snakefile ../TERA-Seq_snakemake/workflow/
 * implement *total* RNA enrichment protocol
 * expand initial QC tests
 * implement analyses from the TERA-Seq manuscript
+*
 
 > Written with [StackEdit](https://stackedit.io/).
