@@ -59,7 +59,7 @@ Clone this GitHub repository to your chosen location. We recommend to clone the 
 
 Clone the latest commit with:
 ```
-git clone https://github.com/mourelatos-lab/TERA-Seq_snakemake.git
+git clone https://github.com/opplatek/TERA-Seq_snakemake.git
 ```
 
 You can install the Snakemake Conda environment as follows:
@@ -84,6 +84,11 @@ git pull
 #### Singularity container
 The workflow **requires** Singularity container. To create one, please use:
 ```
+# Export tmpdir for Singularity to avoid issues with space in /
+tmpdir=$(pwd) 
+export SINGULARITY_TMPDIR=$tmpdir
+export SINGULARITY_CACHEDIR=$tmpdir
+
 singularity pull docker://joppelt/teraseq:snakemake
 ```
 This will create `teraseq-snakemake.simg` if you are using Singularit 2 or  `teraseq_snakemake.sif` if you are using Singularity 3.
@@ -108,8 +113,8 @@ A YAML file specifiying data, samples, and results directories. Please note thes
 	* `datadir` - directory used to store references.
 	* `samplesdir` - directory containing samples for the analysis. The samples inside this directory **must** be named **exactly** as in the `samples.csv` sample sheet. The individiual samples **must** contain `fastq` directory with `reads.1.fastq.gz` FASTQ file.
 	* `resdir` - directory name used to save the workflow results.
-* **`singular_containerdir`**
-Name of directory which contains the Singularity container file. Do not include the container name as this is determined automatically based your Singularity version. Please note you can edit the `Snakefile` directly to specify the path to the Singularity container file. Look for line starting with `singularity:` and edit this line to specify the path and name of the TERA-Seq Snakemake Singularity file.
+* **`singular_container`**
+Path including the name of the Singularity container file. This is most likely going to be `teraseq-snakemake.simg` for Singularity 2 or `teraseq_singularity.sif` for Singularity 3.
 * **`ref_links.yaml`**
 A YAML file specifying links to download the references. Please note that the workflow has been tested on [Ensembl](https://www.ensembl.org/index.html) references. 
 This YAML file is structured as follows:

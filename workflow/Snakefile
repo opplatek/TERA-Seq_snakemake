@@ -21,17 +21,17 @@ configfile: "config/config.yaml"
 
 
 ##### Define container #####
-# Probably not very robust but works for now
-singularity_version = str(subprocess.check_output("singularity --version", shell=True))
-if re.findall(r'\b2.', singularity_version) != []:
-    singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
-elif re.findall(r'\b3.', singularity_version) != []:
-    singularity_container="teraseq_snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
-else:
-    sys.exit("Cannot determine Singularity container based on Singularity version. Please hard-code it into the Snakemake file. Singulariy version" + singularity_version)
+# # Probably not very robust but works for now
+# singularity_version = str(subprocess.check_output("singularity --version", shell=True))
+# if re.findall(r'\b2.', singularity_version) != []:
+#     singularity_container="teraseq-snakemake.simg" # Singularity 2 (tested on 2.6.1-dist)
+# elif re.findall(r'\b3.', singularity_version) != []:
+#     singularity_container="teraseq_snakemake.sif" # Singularity 3 (tested on singularity-ce version 3.11.1-bionic)
+# else:
+#     sys.exit("Cannot determine Singularity container based on Singularity version. Please hard-code it into the Snakemake file. Singulariy version" + singularity_version)
 
-singularity: config['singular_containerdir'] + "/" + singularity_container
-
+#singularity: config['singular_containerdir'] + "/" + singularity_container
+singularity: config['singularity_container']
 
 ##### Functions to load virt environments in Singularity #####
 activ_perl="set +eu; . /usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/teraseq/bin/activate; set -eu"

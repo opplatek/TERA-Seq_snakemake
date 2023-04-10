@@ -2,7 +2,7 @@ samples: config/samples.csv
 
 dirs: config/dirs.yaml
 
-singular_containerdir: /home/jan/playground/TERA-Seq_snakemake
+singularity_container: /home/jan/playground/TERA-Seq_snakemake/teraseq_snakemake.sif
 
 ref_links: config/ref_links.yaml
 
