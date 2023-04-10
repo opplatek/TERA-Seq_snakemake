@@ -5,7 +5,7 @@ hg38:
   "gtf_extend_fiveutr": NA
   "gtf_extend_threeutr": NA
   "gtrna": "http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz"
-  "gtrna_bed": "data/{assembly}/hg38-tRNAs.bed"
+  "gtrna_bed": "data/hg38/hg38-tRNAs.bed"
 
 mm10:
   "org": "Mus musculus"
@@ -18,8 +18,6 @@ mm10:
 
 sc3:
   "org": "Saccharomyces cerevisiae"
-#  "genome": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz"
-#  "gtf": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.gtf.gz"
   "genome": "https://ftp.ensembl.org/pub/release-109/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz"
   "gtf": "https://ftp.ensembl.org/pub/release-109/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.109.gtf.gz"
   "gtf_extend_fiveutr": 200

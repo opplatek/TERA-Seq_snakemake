@@ -16,9 +16,9 @@ import sys
 min_version("7.24.0")
 
 
-##### Snakefile path
-# We;ll use this for the Singularity container and script dirs
-#maindir=""
+##### config file #####
+configfile: "config/config.yaml"
+
 
 ##### Define container #####
 # Probably not very robust but works for now
@@ -30,11 +30,7 @@ elif re.findall(r'\b3.', singularity_version) != []:
 else:
     sys.exit("Cannot determine Singularity container based on Singularity version. Please hard-code it into the Snakemake file. Singulariy version" + singularity_version)
 
-singularity: singularity_container
-
-
-##### config file #####
-configfile: "config/config.yaml"
+singularity: config['singular_containerdir'] + "/" + singularity_container
 
 
 ##### Functions to load virt environments in Singularity #####

@@ -1,7 +1,9 @@
-samples: /home/jan/playground/TERA-Seq_snakemake/config/samples.csv
+samples: config/samples.csv
 
-adapters: /home/jan/playground/TERA-Seq_snakemake/config/adapters.yaml
+dirs: config/dirs.yaml
 
-ref_links: /home/jan/playground/TERA-Seq_snakemake/config/ref_links.yaml
+singular_containerdir: /home/jan/playground/TERA-Seq_snakemake
 
-dirs: /home/jan/playground/TERA-Seq_snakemake/config/dirs.yaml
+ref_links: config/ref_links.yaml
+
+adapters: config/adapters.yaml
