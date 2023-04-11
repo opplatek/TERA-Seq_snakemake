@@ -3,18 +3,11 @@ rule adapter_remove:
     input:
         samplesdir + "/{sample}/fastq/reads.1.sanitize.fastq.gz"
     output:
-#        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-#        woadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
         wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
         woadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.wo_adapt.fastq.gz",
     params:
-#        adapter="XAATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT",
         adapter=lambda wildcards: get_cutadapt_settings(LIBTYPES, ADAPTERS, wildcards.sample)['sequence'],
         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
-        # side="-g"
-        # overlap=31,
-        # minlen=25,
-        # errorrate=0.29,
         side=lambda wildcards: get_cutadapt_settings(LIBTYPES, ADAPTERS, wildcards.sample)['side'],
         overlap=lambda wildcards: get_cutadapt_settings(LIBTYPES, ADAPTERS, wildcards.sample)['overlap'],
         minlen=lambda wildcards: get_cutadapt_settings(LIBTYPES, ADAPTERS, wildcards.sample)['minlen'],
@@ -59,15 +52,12 @@ rule fastq_adapter_names:
             > {output.woadapt_names}
         '''
 
-#rule fastq_adapter_merge_rel5:
+
 rule fastq_adapter_merge:
     input:
-    #    wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-    #    woadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.wo_rel5.fastq.gz",
        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
        woadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.wo_adapt.fastq.gz",
     output:
-#        merged=samplesdir + "/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
         merged=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     shell:
         '''
@@ -145,7 +135,6 @@ rule ribosomal_extract:
 rule ribosomal_remove:
     input:
         ribo_names=samplesdir + "/{sample}/align/reads.1.sanitize.toRibosomal.sorted.reads.txt",
-#        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.rel5_trim.fastq.gz",
         fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     output:
         fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz",

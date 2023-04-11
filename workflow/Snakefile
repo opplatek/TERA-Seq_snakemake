@@ -38,7 +38,7 @@ activ_perl="set +eu; . /usr/local/TERA-Seq_manuscript/tools/perl-virtualenv/tera
 activ_conda=". /usr/local/miniconda3/bin/activate; conda activate teraseq"
 activ_cutadapt=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/cutadapt-2.5/venv/bin/activate"
 activ_deeptools=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/deepTools-3.5.0/venv/bin/activate"
-CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # Save Conda bin path
+CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # DO NOT CHANGE! Conda env bin path in the Singularity container; might not be necessary
 
 
 def get_refs(datadir, assemblies, sample):
@@ -133,14 +133,18 @@ include: "rules/qc-post.smk"
 #REFS = ["hg38/genic_elements.cds.bed"]
 TARGETS = ["log/cutadapt.len.pdf",
            "align/reads.1.sanitize.toGenome.sorted.bam.bai",
-           "log/mapping-stats.genome.done",
-           "log/mapping-stats.transcriptome.done",
            "log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
            "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
             ]
+# Add sqldb-related outputs if sqldb is set to yes|true in the config file
+if (re.compile("yes|true")).match(config['sqldb'].lower()):
+    TARGETS.extend(["log/mapping-stats.genome.done",
+                    "log/mapping-stats.transcriptome.done"])
+
 RESULTS = [""]
+
 
 ##### target rules #####
 rule all:

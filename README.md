@@ -27,7 +27,7 @@ The workflow uses pre-installed software in a Singularity container. If you don'
 
 We **do not** recommend installing Singularity using Conda as there might be permission issues.
 
-#### Ubuntu
+#### Ubuntu 18.04 example
 First, check whether you have all the dependencies from [here](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-dependencies) and [Go installed](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-go)
 
 For `Ubuntu 18.04.6 LTS` and the tested version, do the following:

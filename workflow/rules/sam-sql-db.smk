@@ -101,7 +101,6 @@ use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr3 with:
         column="utr3",
 
 
-#rule annotate_sqlite_trans_adapter_rel5:
 rule annotate_sqlite_trans_adapter:
     input:
         done=samplesdir + "/{sample}/log/annot_trans_utr3.done",
