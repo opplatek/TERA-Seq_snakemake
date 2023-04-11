@@ -8,7 +8,6 @@
 - unify renaming of chromosomes (use ensemble2UCSC and replace in column python script)
 - figure out how to check for config value and if the value doesn't exist don't throw an error but set it to NA
 - write documentation!
-- finish tera3 preprocessing (we only have adapter trimming, but nothing else)
 - cut Dockerfile to complete minimum only necessary for the Snakemake+Singularity run
 - Note: Snakemake cannot handle having two rules outputing the same output file name. It makes sense, this is how it's designed. But it makes it incompatible with sqldb databases
 - test STAR indexing and alignment; as of 03/22/2023 untested
@@ -19,7 +18,6 @@
 - add nanopolish to Snakemake rules if fast5 directory is specified in the config file
 - figure out how to access input: params: ... from the parent rule if we use use rule .. as ..: so we can only change what we need
 - Note: It seems that if we use use rule .. as .. and we change just a single setting from let's say input: we have to se all the other ones as well - it would be easier if the use as rules inherit everything but the changed variables
-- add TERA3 preprocessing, alignment, annotation
 - add 5TERA3 preprocessing (two adapters!), alignment, annotation
 - make conditional use of rules for TERA3/5TERA3 preprocessing and annotation; alignment is the same except using polya/total library
     - the easiest is probably to make a wrapper and decide there with if condition (make it in Python)

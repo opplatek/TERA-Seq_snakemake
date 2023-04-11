@@ -41,15 +41,22 @@ activ_deeptools=activ_conda + "; " + ". /usr/local/TERA-Seq_manuscript/tools/dee
 CONDA_PATH="/usr/local/miniconda3/envs/teraseq/bin" # DO NOT CHANGE! Conda env bin path in the Singularity container; might not be necessary
 
 
+def get_refs_trans(datadir, assemblies, protocols, sample):
+    assembly=f"{assemblies[sample]}"
+    protocol=get_protocol(protocols, sample)
+
+    return {'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts-" + protocol + ".k12.mmi"}
+            # 'mmi_trans_total':datadir  + "/" + assembly + "/minimap2.17/transcripts-total.k12.mmi",
+
+
 def get_refs(datadir, assemblies, sample):
     assembly=f"{assemblies[sample]}"
 
     return {'mmi_wribo':datadir  + "/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
-            'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts.k12.mmi",
             'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
             'gtf_polya':datadir  + "/" + assembly + "/genes-polya.gtf",
             'bed_rrna':datadir   + "/" + assembly + "/rRNA.bed",
-            'names_rrna':datadir   + "/" + assembly + "/rRNA.names.txt",
+            'names_rrna':datadir + "/" + assembly + "/rRNA.names.txt",
             'bed_mrna':datadir   + "/" + assembly + "/genic_elements.mrna.bed",
             'bed_ncrna':datadir  + "/" + assembly + "/genic_elements.ncrna.bed",
             'bed_utr5':datadir   + "/" + assembly + "/genic_elements.utr5.bed",
@@ -60,7 +67,7 @@ def get_refs(datadir, assemblies, sample):
 def get_libtype(libtypes, sample):
     libtype=libtypes[sample]
 
-    return libtype
+    return libtype.lower()
 
 
 def get_adaptside(libtypes, sample):
@@ -71,12 +78,13 @@ def get_adaptside(libtypes, sample):
     elif libtype.lower() == "tera3":
         adaptside="rel3"
 
-    return adaptside
+    return adaptside.lower()
 
 
 def get_adapter(libtypes, adapters, sample):
     adapter=adapters[libtypes[sample]['sequence']]
     return adapter
+
 
 def get_cutadapt_settings(libtypes, adapters, sample):
     return {'sequence':adapters[libtypes[sample]]['sequence'],
@@ -84,6 +92,12 @@ def get_cutadapt_settings(libtypes, adapters, sample):
             'overlap':adapters[libtypes[sample]]['overlap'],
             'minlen':adapters[libtypes[sample]]['minlen'],
             'errorrate':adapters[libtypes[sample]]['errorrate']}
+
+
+def get_protocol(protocols, sample):
+    protocol=protocols[sample]
+
+    return protocol.lower()
 
 
 # Get mem requirements for Samtools sort - Samtools sort uses mem per thread, not total mem
@@ -98,6 +112,8 @@ SAMPLES = pd.read_csv(config['samples'])['sample'].tolist() # read list of sampl
 
 ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly']) # Read sample->assembly
 LIBTYPES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['libtype']) # Read sample->assembly
+PROTOCOLS = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['protocol']) # Read sample->assembly
+
 with open(config['adapters'], 'r') as file:
     ADAPTERS = yaml.safe_load(file)
 with open(config['ref_links'], 'r') as file:
@@ -120,7 +136,6 @@ wildcard_constraints:
 
 
 ##### load rules #####
-include: "rules/signularity-envs-test.smk"
 include: "rules/references-prep.smk"
 include: "rules/sanitize-reads.smk"
 include: "rules/preprocess.smk"
@@ -132,23 +147,23 @@ include: "rules/qc-post.smk"
 ##### target files #####
 #REFS = ["hg38/genic_elements.cds.bed"]
 TARGETS = ["log/cutadapt.len.pdf",
-           "align/reads.1.sanitize.toGenome.sorted.bam.bai",
-           "log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
-           "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
-           "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
+            "align/reads.1.sanitize.toGenome.sorted.bam.bai",
+            "log/reads.1.sanitize.toGenome.len.mapped-vs-aligned.pdf",
+            "log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
+            "log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
+            "log/reads.1.sanitize.noribo.toTranscriptome.len.trim-vs-aligned.pdf"
             ]
 # Add sqldb-related outputs if sqldb is set to yes|true in the config file
 if (re.compile("yes|true")).match(config['sqldb'].lower()):
     TARGETS.extend(["log/mapping-stats.genome.done",
                     "log/mapping-stats.transcriptome.done"])
 
-RESULTS = [""]
+# RESULTS = [""]
 
 
 ##### target rules #####
 rule all:
     input:
         expand(samplesdir + "/{sample}/{target}", sample=SAMPLES, target=TARGETS),
-#        expand(datadir + "/{ref}", ref=REFS),
+#        expand(datadir + "/{ref}", ref=REFS), # If you need to pre-download the references
 #        expand(resdir + "/{analysis}/{sample}/{result}", analysis="", sample=SAMPLES, result=RESULTS), # TODO

@@ -1,11 +1,14 @@
-rule map_trans_polya_minimap2:
+rule map_trans_minimap2:
     input:
         fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.noribo.fastq.gz",
-        mmi_trans=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['mmi_trans'],
+#        mmi_trans_polya=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, wildcards.sample)['mmi_trans_polya'],
+#        mmi_trans_total=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, wildcards.sample)['mmi_trans_total'],
+        mmi_trans=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['mmi_trans'],        
     output:
-        bam=[samplesdir + "/{sample}/align/reads.1.sanitize.noribo.toTranscriptome-polya.sorted.bam",
+        bam=[samplesdir + "/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.trans.sorted.bam",
              samplesdir + "/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam"],
     params:
+#        protocol=lambda wildcards: get_protocol(PROTOCOLS, wildcards.sample),
         k=12,
         secondary="yes",
         sec_to_prim=1.0,

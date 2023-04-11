@@ -278,7 +278,7 @@ rule transcripts_extract:
         gtf_total=datadir + "/{assembly}/genes-total.gtf",
         gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
     output:
-        trans=datadir + "/{assembly}/transcripts.fa",
+        trans=datadir + "/{assembly}/transcripts-polya.fa",
         trans_total=datadir + "/{assembly}/transcripts-total.fa",
         gtf=datadir + "/{assembly}/ensembl_transcripts_protein_coding.gtf",
     shell:
@@ -386,9 +386,9 @@ rule index_genome_minimap2:
 
 use rule index_genome_minimap2 as index_trans_polya_minimap2 with:
     input:
-        trans=datadir + "/{assembly}/transcripts.fa",
+        trans=datadir + "/{assembly}/transcripts-polya.fa",
     output:
-        mmi_trans=datadir + "/{assembly}/minimap2.17/transcripts.k12.mmi",
+        mmi_trans=datadir + "/{assembly}/minimap2.17/transcripts-polya.k12.mmi",
 
 use rule index_genome_minimap2 as index_trans_total_minimap2 with:
     input:
