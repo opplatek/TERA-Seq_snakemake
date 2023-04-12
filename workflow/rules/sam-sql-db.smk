@@ -6,7 +6,7 @@ rule sam_to_sqlite_trans:
         bam=samplesdir + "/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam",
     output:
         db=samplesdir + "/{sample}/db/sqlite.db",
-        done=samplesdir + "/{sample}/log/sam_to_sqlite_trans.done",
+        done=samplesdir + "/{sample}/db/sam_to_sqlite_trans.done",
     params:
         filter_flags="-F 4 -F 16 -F 2048",
         table="transcr",
@@ -27,11 +27,11 @@ rule sam_to_sqlite_trans:
 
 rule annotate_sqlite_trans_mrna:
     input:
-        done=samplesdir + "/{sample}/log/sam_to_sqlite_trans.done",
+        done=samplesdir + "/{sample}/db/sam_to_sqlite_trans.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        bed=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['bed_mrna'],
+        bed=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['bed_mrna'],
     output:
-        done=samplesdir + "/{sample}/log/annot_trans_mrna.done",
+        done=samplesdir + "/{sample}/db/annot_trans_mrna.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
@@ -51,11 +51,11 @@ rule annotate_sqlite_trans_mrna:
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_ncrna with:
     input:
-        done=samplesdir + "/{sample}/log/annot_trans_mrna.done",
+        done=samplesdir + "/{sample}/db/annot_trans_mrna.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        bed=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['bed_ncrna'],
+        bed=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['bed_ncrna'],
     output:
-        done=samplesdir + "/{sample}/log/annot_trans_ncrna.done",
+        done=samplesdir + "/{sample}/db/annot_trans_ncrna.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
@@ -64,11 +64,11 @@ use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_ncrna with:
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr5 with:
     input:
-        done=samplesdir + "/{sample}/log/annot_trans_ncrna.done",
+        done=samplesdir + "/{sample}/db/annot_trans_ncrna.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        bed=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['bed_utr5'],
+        bed=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['bed_utr5'],
     output:
-        done=samplesdir + "/{sample}/log/annot_trans_utr5.done",
+        done=samplesdir + "/{sample}/db/annot_trans_utr5.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
@@ -77,11 +77,11 @@ use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr5 with:
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_cds with:
     input:
-        done=samplesdir + "/{sample}/log/annot_trans_utr5.done",
+        done=samplesdir + "/{sample}/db/annot_trans_utr5.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        bed=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['bed_cds'],
+        bed=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['bed_cds'],
     output:
-        done=samplesdir + "/{sample}/log/annot_trans_cds.done",
+        done=samplesdir + "/{sample}/db/annot_trans_cds.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
@@ -90,31 +90,27 @@ use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_cds with:
 
 use rule annotate_sqlite_trans_mrna as annotate_sqlite_trans_utr3 with:
     input:
-        done=samplesdir + "/{sample}/log/annot_trans_cds.done",
+        done=samplesdir + "/{sample}/db/annot_trans_cds.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        bed=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['bed_utr3'],
+        bed=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['bed_utr3'],
     output:
-        done=samplesdir + "/{sample}/log/annot_trans_utr3.done",
+        done=samplesdir + "/{sample}/db/annot_trans_utr3.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
         column="utr3",
 
 
-rule annotate_sqlite_trans_adapter:
+rule annotate_sqlite_trans_5tera:
     input:
-        done=samplesdir + "/{sample}/log/annot_trans_utr3.done",
-        # db=samplesdir + "/{sample}/db/sqlite.db",
-#        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
+        done=samplesdir + "/{sample}/db/annot_trans_utr3.done",
+        wadapt = samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.5tera.fastq.gz",      
     output:
-#        done=samplesdir + "/{sample}/log/annot_trans_rel5.done",
-        done=samplesdir + "/{sample}/log/annot_trans_adapt.done",
+        done=samplesdir + "/{sample}/db/annot_trans_adapt.5tera.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
-#        column="rel5",
-        column=lambda wildcards: get_adaptside(LIBTYPES, wildcards.sample),
+        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
         column_bind="qname",
     shell:
         '''
@@ -130,14 +126,22 @@ rule annotate_sqlite_trans_adapter:
         '''
 
 
+use rule annotate_sqlite_trans_5tera as annotate_sqlite_trans_tera3 with:
+    input:
+        done=lambda wildcards: get_annot_trans_tera3_input(LIBTYPES, wildcards.sample),
+        wadapt = samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.tera3.fastq.gz",      
+    output:
+        done=samplesdir + "/{sample}/db/annot_trans_adapt.tera3.done",
+
+
 ### Genome
 rule sam_to_sqlite_genome:
     input:
-#        done=samplesdir + "/{sample}/log/annot_trans_rel5.done",
-        done=samplesdir + "/{sample}/log/annot_trans_adapt.done",
+#        done=samplesdir + "/{sample}/db/annot_trans_adapt.done",
+        done=lambda wildcards: get_sam_to_sqlite_genome_input(LIBTYPES, wildcards.sample),
         bam=samplesdir + "/{sample}/align/reads.1.sanitize.toGenome.sorted.bam",
     output:
-        done=samplesdir + "/{sample}/log/sam_to_sqlite_genome.done",
+        done=samplesdir + "/{sample}/db/sam_to_sqlite_genome.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         filter_flags="-F 4 -F 2048",
@@ -157,13 +161,13 @@ rule sam_to_sqlite_genome:
         '''
 
 
-rule annotate_sqlite_genome_gtf_polya:
+rule annotate_sqlite_genome_gtf:
     input:
-        done=samplesdir + "/{sample}/log/sam_to_sqlite_genome.done",
+        done=samplesdir + "/{sample}/db/sam_to_sqlite_genome.done",
         # db=samplesdir + "/{sample}/db/sqlite.db",
-        gtf=lambda wildcards: get_refs(datadir, ASSEMBLIES, wildcards.sample)['gtf_polya'],
+        gtf=lambda wildcards: get_refs_trans(datadir, ASSEMBLIES, PROTOCOLS, wildcards.sample)['gtf'],
     output:
-        done=samplesdir + "/{sample}/log/annot_genome_gtf.done",
+        done=samplesdir + "/{sample}/db/annot_genome_gtf.done",
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="genome",
@@ -180,19 +184,37 @@ rule annotate_sqlite_genome_gtf_polya:
 
 
 #use rule annotate_sqlite_trans_adapter_rel5 as annotate_sqlite_genome_adapter_rel5 with:
-use rule annotate_sqlite_trans_adapter as annotate_sqlite_genome_adapter with:
+use rule annotate_sqlite_trans_5tera as annotate_sqlite_genome_5tera with:
     input:
-        done=samplesdir + "/{sample}/log/annot_genome_gtf.done",
-        # db=samplesdir + "/{sample}/db/sqlite.db",
-#        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_rel5.fastq.gz",
-        wadapt=samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.fastq.gz",
+        done=samplesdir + "/{sample}/db/annot_genome_gtf.done",
+#        wadapt = lambda wildcards: get_trim_merge(LIBTYPES, wildcards.sample)['wadapt']
+        wadapt = samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.5tera.fastq.gz",      
     output:
-#        done=samplesdir + "/{sample}/log/annot_genome_rel5.done",
-        done=samplesdir + "/{sample}/log/annot_genome_adapt.done",
+        done=samplesdir + "/{sample}/db/annot_genome_adapt.5tera.done",        
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="genome",
-#        column="rel5",
-        column=lambda wildcards: get_adaptside(LIBTYPES, wildcards.sample),
+        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
         column_bind="qname",
 
+
+use rule annotate_sqlite_genome_5tera as annotate_sqlite_genome_tera3 with:
+    input:
+#        done=samplesdir + "/{sample}/db/annot_genome_gtf.done",
+        done=lambda wildcards: get_annot_genome_tera3_input(LIBTYPES, wildcards.sample),
+#        wadapt = lambda wildcards: get_trim_merge(LIBTYPES, wildcards.sample)['wadapt']
+        wadapt = samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.tera3.fastq.gz",      
+    output:
+        done=samplesdir + "/{sample}/db/annot_genome_adapt.tera3.done",        
+    params:
+        db=samplesdir + "/{sample}/db/sqlite.db",
+        table="genome",
+        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
+        column_bind="qname",
+
+
+rule sql_annotate:
+    input:
+        lambda wildcards: get_sqldb_done(LIBTYPES, wildcards.sample)
+    output:
+        samplesdir + "/{sample}/db/annot_sqldb.done",
