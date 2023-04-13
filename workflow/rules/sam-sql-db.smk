@@ -226,3 +226,7 @@ rule sql_annotate:
         lambda wildcards: get_sqldb_done(LIBTYPES, wildcards.sample)
     output:
         samplesdir + "/{sample}/db/annot_sqldb.done",
+    shell:
+        '''
+        touch {output}
+        '''
