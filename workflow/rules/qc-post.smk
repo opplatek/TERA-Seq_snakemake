@@ -86,7 +86,11 @@ rule mapped_transcriptome:
 
         # For 5tera3, iterate over both adapters
         if [ {params.libtype} == "5tera3" ]; then
-            adapt_cols="5tera tera3"
+            adapt_cols="rel5 rel3"
+        elif [ {params.libtype} == "tera3" ]; then
+            adapt_cols="rel3"
+        elif [ {params.libtype} == "5tera" ]; then
+            adapt_cols="rel5"        
         fi
 
         echo "All reads mapped to protein-coding transcripts (primary)" > {output.stats}

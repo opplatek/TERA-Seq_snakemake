@@ -110,7 +110,8 @@ rule annotate_sqlite_trans_5tera:
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="transcr",
-        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
+#        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample), # RSQLite doesn't like column names starting with a nubmer
+        column="rel5",
         column_bind="qname",
     shell:
         '''
@@ -132,7 +133,12 @@ use rule annotate_sqlite_trans_5tera as annotate_sqlite_trans_tera3 with:
         wadapt = samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt.tera3.fastq.gz",      
     output:
         done=samplesdir + "/{sample}/db/annot_trans_adapt.tera3.done",
-
+    params:
+        db=samplesdir + "/{sample}/db/sqlite.db",
+        table="transcr",
+#        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample), # RSQLite doesn't like column names starting with a nubmer
+        column="rel3",
+        column_bind="qname",
 
 ### Genome
 rule sam_to_sqlite_genome:
@@ -194,7 +200,8 @@ use rule annotate_sqlite_trans_5tera as annotate_sqlite_genome_5tera with:
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="genome",
-        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
+#        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample), # RSQLite doesn't like column names starting with a nubmer
+        column="rel5",
         column_bind="qname",
 
 
@@ -209,7 +216,8 @@ use rule annotate_sqlite_genome_5tera as annotate_sqlite_genome_tera3 with:
     params:
         db=samplesdir + "/{sample}/db/sqlite.db",
         table="genome",
-        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
+#        column=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample), # RSQLite doesn't like column names starting with a nubmer
+        column="rel3",
         column_bind="qname",
 
 
