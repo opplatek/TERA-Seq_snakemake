@@ -182,10 +182,10 @@ concurrent_mappings=4
 
 snakemake \
 	-c $threads --use-singularity \
-	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
-	--configfile config/config.yaml \
-	--directory /home/user/projects/TERASeq \
 	--resources map_jobs=$concurrent_mappings \
+	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+	--directory /home/user/projects/TERASeq \
+	--configfile config/config.yaml \
 	-pn
 ```
 6. Run the pipeline with workflow stats and reports (Note: the reports need the additional Python packages mentioned in the [Getting the worflow section](getting-the-workflow):
@@ -196,10 +196,10 @@ mkdir report
 # Run the workflow with stats
 snakemake \
 	-c $threads --use-singularity \
-	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
-	--configfile config/config.yaml \
-	--directory /home/user/projects/TERASeq \
 	--resources map_jobs=$concurrent_mappings \
+	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+	--directory /home/user/projects/TERASeq \
+	--configfile config/config.yaml \
 	--stats report/${date}.teraseq-snakemake-stats.txt
 	-p
 
