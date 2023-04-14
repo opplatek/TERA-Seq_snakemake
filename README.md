@@ -1,3 +1,4 @@
+
 # Snakemake workflow: `TERA-Seq`
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
@@ -80,17 +81,22 @@ git pull
 ```
 
 #### Singularity container
-The workflow **requires** Singularity container. To create one, please use the following:
+The workflow **requires** Singularity container. Before making the environment, we recommend exporting temp and cache Singularity variables to a location with enough free disk space. To create one, please use the following:
 ```
+tmpdir=$(pwd) # Your temporary and cache directory
+
+export SINGULARITY_TMPDIR=$tmpdir
+export SINGULARITY_CACHEDIR=$tmpdir
+
 singularity pull docker://joppelt/teraseq:snakemake
 ```
 This will create `teraseq-snakemake.simg` if you use Singularity 2 or  `teraseq_snakemake.sif` if you use Singularity 3.
 
 ## Workflow configuration
-You must remember Snakemake is based on **relative** directory structure to the Snakefile or the workdir. This affects how we have to think about the config files as well as output directories.
+You must remember Snakemake is based on **relative** directory structure to the Snakefile or the workdir. This affects how we have to think about the config files and output directories.
 
 ### Config file
-The main config file is in [config/config.yaml](config/config.yaml). The location of the main config file can be specified when launching the Snakemake, but we **strongly recommend** to keep it in your main project directory. 
+The main config file is in [`config/config.yaml`](config/config.yaml). The location of the main config file can be specified when launching the Snakemake, but we **strongly recommend** to keep it in your main project directory. 
 
 You **have to** update the main config file with the correct paths to the sub-configs. Please note the paths can be either **absolute** or **relative** to Snakefile or workdir. We recommend copying the whole `config` directory to your workdir, keeping the sub-config files with relative paths, and only specifying the Singularity file directory name with an absolute path.
 
@@ -98,21 +104,25 @@ The main config files contain links to four sub-config files:
 * **`samples.csv`**
 A comma-delimited sample sheet with description and sample names to process. The sample sheet file has four columns:
 	* sample - the name of the sample directory. The sample directory **must** have **`fastq`** subdirectory with **`reads.1.fastq.gz`** file inside. `reads.1.fastq.gz` are the basecalled reads created by the TERA-Seq protocol.
-	* `assembly` - sample assembly. Currently, the implemented assemblies are: *hg38*, *mm10*, and *sc3*.
-	* `libtype` - TERA-Seq library type. Currently, the implemented library types are: *5tera*.
-	* `protocol` - RNA enrichment protocol. Currently, the implemented protocols are: *polya*.
+	* `assembly` - sample assembly. The implemented assemblies are: *hg38*, *mm10*, and *sc3*.
+	* `libtype` - TERA-Seq library type. The implemented library types are: *5tera*, *tera3*, *5tera3*.
+	* `protocol` - RNA enrichment protocol. Currently, the implemented protocols are: *polya*, *total*.
 * **`dirs.yaml `**
-A YAML file specifying data, samples, and results directories. Please note these paths are **relative** to the Snakefile or to workdir.
+A YAML file specifying data, samples, and results directories. Please note these paths are **relative** to the Snakefile or workdir.
 	* `datadir` - directory used to store references.
 	* `samplesdir` - directory containing samples for the analysis. The samples inside this directory **must** be named **exactly** as in the `samples.csv` sample sheet. The individual samples **must** contain `fastq` directory with `reads.1.fastq.gz` FASTQ file.
 	* `resdir` - directory name used to save the workflow results.
-* **`singular_container`**
-Path including the name of the Singularity container file. This is most likely going to be `teraseq-snakemake.simg` for Singularity 2 or `teraseq_singularity.sif` for Singularity 3.
+* **`sqldb`** 
+Do you want to create an annotated SQL DB file? ["yes"|"no"]. **Must** include the double quotes.
+* **`singularity_container`**
+Path, including the name of the Singularity container file. This is most likely going to be `teraseq-snakemake.simg` for Singularity 2 or `teraseq_singularity.sif` for Singularity 3.
+* **`resources.yaml`**
+The maximum number of resources used throughout the workflow.
 * **`ref_links.yaml`**
-A YAML file specifying links to download the references. Please note that the workflow has been tested on [Ensembl](https://www.ensembl.org/index.html) references. 
+A YAML file specifying links to download the references. The workflow has been tested on [Ensembl](https://www.ensembl.org/index.html) references. 
 This YAML file is structured as follows:
 ```
-organisms reference name abbreviation:
+organism reference name abbreviation:
 	org: organism Latin name
 	genome: link to download the reference genome
 	gtf: link to download the reference genome annotation GTF file
@@ -130,15 +140,79 @@ silva:
 * **`adapters.yaml`**
 YAML file specifying adapter trimming parameters for individual TERA-Seq library types.
 
+### Additional workflow resources
+By default, we limit the maximum number of concurrent mapping jobs to four (you can change the default settings at [`config/resources.yaml`](config/resources.yaml) - look for `map_jobs`). There are two reasons - a) classical HDD might have trouble running more than ~4 I/O demanding jobs simultaneously; b) `sam-count-secondary` can consume a lot of RAM per sample (depending on the sequencing depth). If you run the analysis on SSD and/or have a lot of RAM, you can increase the maximum value or add `--resources map_jobs=maxnumberofmapjobs` to the Snakemake command (replace `maxnumberofmapjobs` with a value of the maximum number of concurrent mapping jobs).
+
 ## Running the workflow
 Make sure you activate your Conda environment if this is how you installed Snakemake:
 ```
 conda activate teraseq-snakemake
 ```
 The workflow is designed to run in any work directory. 
+
+Let's assume you cloned the main TERA-Seq_snakemake repository to `/home/user/tools/TERA-Seq_snakemake`, and pulled the Singularity container to the same directory. Your main project directory is `/home/user/projects/TERASeq`. The main project directory contains individual sample directories in `data/samples`. Each of the sample's directories has `fastq/reads.1.fastq.gz` file. 
+
+1. Copy the `config` directory from the main TERA-Seq_snakemake repository copy:
 ```
-snakemake     --use-singularity -c 2 --snakefile ../TERA-Seq_snakemake/workflow/Snakefile --directory /home/jan/playground/test --configfile config.yaml -p
+cp -r /home/user/tools/TERA-Seq_snakemake/config /home/user/projects/teraseq/
 ```
+2. Modify the main config to reflect the location of the Singularity container (**absolute path**) set if you also want to make the SQLite db file. As stated previously, the main config file can be found at `config/config.yaml` (See [Config file section](#config-file) for more details). After the modifications, the config might look like this:
+```
+samples: "config/samples.csv" # Sample sheet
+
+dirs: "config/dirs.yaml" # Name of directories for samples, references, and results
+
+sqldb: "yes" # [yes|no] Make SQL db file
+
+singularity_container: "/home/user/tools/TERA-Seq_snakemake/teraseq_snakemake.sif" # If we are using Singularity 3
+#singularity_container: "/home/user/tools/TERA-Seq_snakemake/teraseq_snakemake.simg" # If we are using Singularity 2
+
+ref_links: "config/ref_links.yaml" # Links to download reference
+
+adapters: "config/adapters.yaml" # Adapter trimming settings
+```
+3. Modify the samples, references, and results output directories if necessary at `config/dirs.yaml`. See [Config file section](#config-file) for more details.
+4. Add the samples to analyze to `config/samples.csv`. See [Config file section](#config-file) for more details.
+5. Run a dry-run to test we set everything correctly:
+```
+conda activate teraseq-snakemake
+
+threads=16 
+concurent_mappings=2 
+
+snakemake \
+	-c $threads --use-singularity \
+	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+	--configfile config/config.yaml \
+	--directory /home/user/projects/TERASeq \
+	--resources map_jobs=$concurent_mappings \
+	-pn
+```
+6. Run the pipeline with workflow stats and reports (Note: the reports need the additional Python packages mentioned in the [Getting the worflow section](getting-the-workflow):
+```
+date=$(date +"%Y%d%d_%H%M%S")
+mkdir report
+
+# Run the workflow with stats
+snakemake \
+	-c $threads --use-singularity \
+	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+	--configfile config/config.yaml \
+	--directory /home/user/projects/TERASeq \
+	--resources map_jobs=$concurent_mappings \
+	--stats report/${date}.teraseq-snakemake-stats.txt
+	-p
+
+# Make reports and summaries
+snakemake \
+    -c $threads \
+    --report report/${date}.teraseq-snakemake-report.html 
+
+snakemake \
+    -c $threads \
+    --detailed-summary > report/${date}.teraseq-snakemake-summary.txt
+```
+
 ## TODO list
 * add automatic detection of singularity container in case the path is not set in the config file
 * check for 5utr and 3utr extensions in the references config list as automatically set to NA if not set in the config

@@ -1,5 +1,5 @@
-"datadir": "data"
+datadir: "data"
 
-"samplesdir": "data/samples"
+samplesdir: "data/samples"
 
-"resdir": "results"
+resdir: "results"
