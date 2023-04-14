@@ -140,8 +140,8 @@ The workflow is designed to run in any work directory.
 snakemake     --use-singularity -c 2 --snakefile ../TERA-Seq_snakemake/workflow/Snakefile --directory /home/jan/playground/test --configfile config.yaml -p
 ```
 ## TODO list
-* implement *tera3* and *5tera3* library types.
-* implement *total* RNA enrichment protocol
+* add automatic detection of singularity container in case the path is not set in the config file
+* check for 5utr and 3utr extensions in the references config list as automatically set to NA if not set in the config
 * expand initial QC tests
 * implement analyses from the TERA-Seq manuscript
 

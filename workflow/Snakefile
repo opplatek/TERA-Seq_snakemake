@@ -45,7 +45,14 @@ def get_refs_trans(datadir, assemblies, protocols, sample):
     assembly=f"{assemblies[sample]}"
     protocol=get_protocol(protocols, sample)
 
-    return {'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts-" + protocol + ".k12.mmi"}
+    return {'mmi_trans':datadir  + "/" + assembly + "/minimap2.17/transcripts-" + protocol + ".k12.mmi",
+            'gtf':datadir  + "/" + assembly + "/genes-" + protocol + ".gtf",
+            'bed_mrna':datadir   + "/" + assembly + "/genic_elements-" + protocol + ".mrna.bed",
+            'bed_ncrna':datadir  + "/" + assembly + "/genic_elements-" + protocol + ".ncrna.bed",
+            'bed_utr5':datadir   + "/" + assembly + "/genic_elements-" + protocol + ".utr5.bed",
+            'bed_cds':datadir    + "/" + assembly + "/genic_elements-" + protocol + ".cds.bed",
+            'bed_utr3':datadir   + "/" + assembly + "/genic_elements-" + protocol + ".utr3.bed",
+            }
             # 'mmi_trans_total':datadir  + "/" + assembly + "/minimap2.17/transcripts-total.k12.mmi",
 
 
@@ -54,14 +61,9 @@ def get_refs(datadir, assemblies, sample):
 
     return {'mmi_wribo':datadir  + "/" + assembly + "/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
             'mmi_genome':datadir + "/" + assembly + "/minimap2.17/genome.k12.mmi",
-            'gtf_polya':datadir  + "/" + assembly + "/genes-polya.gtf",
             'bed_rrna':datadir   + "/" + assembly + "/rRNA.bed",
-            'names_rrna':datadir + "/" + assembly + "/rRNA.names.txt",
-            'bed_mrna':datadir   + "/" + assembly + "/genic_elements.mrna.bed",
-            'bed_ncrna':datadir  + "/" + assembly + "/genic_elements.ncrna.bed",
-            'bed_utr5':datadir   + "/" + assembly + "/genic_elements.utr5.bed",
-            'bed_cds':datadir    + "/" + assembly + "/genic_elements.cds.bed",
-            'bed_utr3':datadir   + "/" + assembly + "/genic_elements.utr3.bed"}
+            'names_rrna':datadir + "/" + assembly + "/rRNA.names.txt"
+            }
 
 
 def get_libtype(libtypes, sample):
@@ -70,15 +72,15 @@ def get_libtype(libtypes, sample):
     return libtype.lower()
 
 
-def get_adaptside(libtypes, sample):
-    libtype=get_libtype(libtypes, sample)
+# def get_adaptside(libtypes, sample):
+#     libtype=get_libtype(libtypes, sample)
 
-    if libtype.lower() == "5tera":
-        adaptside="rel5"
-    elif libtype.lower() == "tera3":
-        adaptside="rel3"
+#     if libtype.lower() == "5tera":
+#         adaptside="rel5"
+#     elif libtype.lower() == "tera3":
+#         adaptside="rel3"
 
-    return adaptside.lower()
+#     return adaptside.lower()
 
 
 def get_adapter(libtypes, adapters, sample):
@@ -86,12 +88,107 @@ def get_adapter(libtypes, adapters, sample):
     return adapter
 
 
-def get_cutadapt_settings(libtypes, adapters, sample):
-    return {'sequence':adapters[libtypes[sample]]['sequence'],
-            'side':adapters[libtypes[sample]]['side'],
-            'overlap':adapters[libtypes[sample]]['overlap'],
-            'minlen':adapters[libtypes[sample]]['minlen'],
-            'errorrate':adapters[libtypes[sample]]['errorrate']}
+# def get_cutadapt_settings(libtypes, adapters, sample):
+#     return {'sequence':adapters[libtypes[sample]]['sequence'],
+#             'side':adapters[libtypes[sample]]['side'],
+#             'overlap':adapters[libtypes[sample]]['overlap'],
+#             'minlen':adapters[libtypes[sample]]['minlen'],
+#             'errorrate':adapters[libtypes[sample]]['errorrate']}
+
+
+def get_cutadapt_settings(adapters, libtype):
+    return {'sequence':adapters[libtype]['sequence'],
+            'side':adapters[libtype]['side'],
+            'overlap':adapters[libtype]['overlap'],
+            'minlen':adapters[libtype]['minlen'],
+            'errorrate':adapters[libtype]['errorrate']}
+
+
+def get_trim_log(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    # We treat 5tera3 as 5tera because all the reads should have tera3 adapter otherwise they wouldn't get RTA ligated and sequenced
+    if libtype == "5tera3":
+        libtype="5tera"
+
+    trimlog=samplesdir + "/{sample}/log/cutadapt." + libtype + ".log"
+
+    return trimlog
+
+
+def get_tera3_remove_input(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    # Get 5tera trimmed (and untrimmed) as input to 5tera3 tera3 adapter removal
+    if libtype == "5tera3":
+        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.5tera.fastq.gz"
+    else:
+        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.fastq.gz"
+
+    return fastq
+
+
+def get_annot_trans_tera3_input(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    if libtype == "5tera3":
+        done=samplesdir + "/{sample}/db/annot_trans_adapt.5tera.done"
+    else:
+        done=samplesdir + "/{sample}/db/annot_trans_utr3.done"
+
+    return done
+
+
+def get_sam_to_sqlite_genome_input(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    if libtype == "5tera":
+        done=samplesdir + "/{sample}/db/annot_trans_adapt.5tera.done"
+    else:
+        done=samplesdir + "/{sample}/db/annot_trans_adapt.tera3.done"
+
+    return done
+
+
+def get_annot_genome_tera3_input(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    if libtype == "5tera3":
+        done=samplesdir + "/{sample}/db/annot_genome_adapt.5tera.done"
+    else:
+        done=samplesdir + "/{sample}/db/annot_genome_gtf.done"
+
+    return done
+
+
+def get_sqldb_done(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    if libtype == "5tera":
+        done=samplesdir + "/{sample}/db/annot_genome_adapt.5tera.done"
+    else:
+        done=samplesdir + "/{sample}/db/annot_genome_adapt.tera3.done"
+
+    return done
+
+
+def get_adapter_remove_sync_input(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    if libtype == "5tera":
+        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.5tera.fastq.gz"
+    else:
+        fastq=samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.tera3.fastq.gz"
+
+    return fastq
+
+
+def get_trim_merge(libtypes, sample):
+    libtype=get_libtype(libtypes, sample)
+
+    return {'wadapt':samplesdir + "/{sample}/fastq/reads.1.sanitize.w_adapt." + libtype + ".fastq.gz",
+            'woadapt':samplesdir + "/{sample}/fastq/reads.1.sanitize.wo_adapt." + libtype + ".fastq.gz",
+            }
 
 
 def get_protocol(protocols, sample):
@@ -113,6 +210,7 @@ SAMPLES = pd.read_csv(config['samples'])['sample'].tolist() # read list of sampl
 ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly']) # Read sample->assembly
 LIBTYPES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['libtype']) # Read sample->assembly
 PROTOCOLS = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['protocol']) # Read sample->assembly
+
 
 with open(config['adapters'], 'r') as file:
     ADAPTERS = yaml.safe_load(file)
@@ -155,8 +253,9 @@ TARGETS = ["log/cutadapt.len.pdf",
             ]
 # Add sqldb-related outputs if sqldb is set to yes|true in the config file
 if (re.compile("yes|true")).match(config['sqldb'].lower()):
-    TARGETS.extend(["log/mapping-stats.genome.done",
-                    "log/mapping-stats.transcriptome.done"])
+    TARGETS.extend(["db/annot_sqldb.done",
+                    "db/mapping-stats.genome.done",
+                    "db/mapping-stats.transcriptome.done"])
 
 # RESULTS = [""]
 

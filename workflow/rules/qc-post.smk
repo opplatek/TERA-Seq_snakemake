@@ -13,7 +13,8 @@
 
 rule cutadapt_parse_lens:
     input:
-        samplesdir + "/{sample}/log/cutadapt.log",
+#        samplesdir + "/{sample}/log/cutadapt.log",
+        lambda wildcards: get_trim_log(LIBTYPES, wildcards.sample),
     output:
         samplesdir + "/{sample}/log/cutadapt.len.tsv",
     script:
@@ -46,12 +47,12 @@ rule cutadapt_plot_lens:
 # rule mapped_transcriptome:
 #     input:
 #         samplesdir + "/{sample}/db/sqlite.db",
-# #        samplesdir + "/{sample}/log/annot_trans_rel5.done",
-#         samplesdir + "/{sample}/log/annot_trans_adapt.done",
-#         samplesdir + "/{sample}/log/annot_genome_adapt.done",
+# #        samplesdir + "/{sample}/db/annot_trans_5tera.done",
+#         samplesdir + "/{sample}/db/annot_trans_adapt.done",
+#         samplesdir + "/{sample}/db/annot_genome_adapt.done",
 #     output:
 #         samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
-#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
+#         samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
 #     params:
 #         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
 #     shell:
@@ -66,28 +67,64 @@ rule cutadapt_plot_lens:
 rule mapped_transcriptome:
     input:
         samplesdir + "/{sample}/db/sqlite.db",
-#        samplesdir + "/{sample}/log/annot_trans_rel5.done",
-        samplesdir + "/{sample}/log/annot_trans_adapt.done",
-        samplesdir + "/{sample}/log/annot_genome_adapt.done",
+#        samplesdir + "/{sample}/db/annot_trans_5tera.done",
+        # samplesdir + "/{sample}/db/annot_trans_adapt.done",
+        # samplesdir + "/{sample}/db/annot_genome_adapt.done",
+        samplesdir + "/{sample}/db/annot_sqldb.done"        
     output:
-        samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
-        samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
+        stats = samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
+        done = samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
     params:
         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
-    script:
-        "../scripts/mapping-stats-transcriptome.sh"
+#    script:
+#        "../scripts/mapping-stats-transcriptome.sh"
+    shell:
+        '''
+        {activ_conda}
 
+        adapt_cols={params.libtype}
+
+        # For 5tera3, iterate over both adapters
+        if [ {params.libtype} == "5tera3" ]; then
+            adapt_cols="rel5 rel3"
+        elif [ {params.libtype} == "tera3" ]; then
+            adapt_cols="rel3"
+        elif [ {params.libtype} == "5tera" ]; then
+            adapt_cols="rel5"        
+        fi
+
+        echo "All reads mapped to protein-coding transcripts (primary)" > {output.stats}
+        sqlite3 {input[0]} 'SELECT COUNT (DISTINCT qname) FROM transcr WHERE (((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));' >> {output.stats}
+        echo "Unambiguously mapped reads to protein-coding transcripts" >> {output.stats}
+        sqlite3 {input[0]} 'SELECT COUNT (DISTINCT qname) FROM transcr WHERE (((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL) AND (best_hit == 1 AND number_of_best_hits == 1));' >> {output.stats}
+
+        for adapt_col in ${{adapt_cols}}; do
+            echo "Mapped reads to protein-coding transcripts without ${{adapt_col}} adapter (primary)" >> {output.stats}
+            sqlite3 {input[0]} "SELECT COUNT (DISTINCT qname) FROM transcr WHERE (${{adapt_col}} IS NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}
+            echo "Mapped reads to protein-coding transcripts with ${{adapt_col}} adapter (primary)" >> {output.stats}
+            sqlite3 {input[0]} "SELECT COUNT (DISTINCT qname) FROM transcr WHERE (${{adapt_col}} IS NOT NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}
+
+            echo "All mapped protein-coding transcripts without ${{adapt_col}} adapter (from primary mappings)" >> {output.stats}
+            sqlite3 {input[0]} "SELECT COUNT (DISTINCT rname) FROM transcr WHERE (${{adapt_col}} IS NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}
+            echo "All mapped protein-coding transcripts with ${{adapt_col}} adapter (from primary mappings)" >> {output.stats}
+            sqlite3 {input[0]} "SELECT COUNT (DISTINCT rname) FROM transcr WHERE (${{adapt_col}} IS NOT NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}      
+        done
+
+        if [ `wc -l {output.stats} | cut -d ' ' -f1` -eq 12 ] || [ `wc -l {output.stats} | cut -d ' ' -f1` -eq 20 ] ; then
+            touch {output.done}
+        fi
+        '''
 
 # rule mapped_genome:
 #     input:
 #         samplesdir + "/{sample}/db/sqlite.db",
-#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
-# #        samplesdir + "/{sample}/log/annot_genome_rel5.done",
-#         samplesdir + "/{sample}/log/annot_trans_adapt.done",
-#         samplesdir + "/{sample}/log/annot_genome_adapt.done",
+#         samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+# #        samplesdir + "/{sample}/db/annot_genome_5tera.done",
+#         samplesdir + "/{sample}/db/annot_trans_adapt.done",
+#         samplesdir + "/{sample}/db/annot_genome_adapt.done",
 #     output:
 #         samplesdir + "/{sample}/log/mapping-stats.genome.txt",
-#         samplesdir + "/{sample}/log/mapping-stats.genome.done",
+#         samplesdir + "/{sample}/db/mapping-stats.genome.done",
 #     shell:
 #         '''
 #         {activ_conda}
@@ -99,15 +136,28 @@ rule mapped_transcriptome:
 rule mapped_genome:
     input:
         samplesdir + "/{sample}/db/sqlite.db",
-        samplesdir + "/{sample}/log/mapping-stats.transcriptome.done",
-#        samplesdir + "/{sample}/log/annot_genome_rel5.done",
-        samplesdir + "/{sample}/log/annot_trans_adapt.done",
-        samplesdir + "/{sample}/log/annot_genome_adapt.done",
+        samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+        # samplesdir + "/{sample}/db/annot_trans_adapt.done",
+        # samplesdir + "/{sample}/db/annot_genome_adapt.done",
+        samplesdir + "/{sample}/db/annot_sqldb.done"
     output:
-        samplesdir + "/{sample}/log/mapping-stats.genome.txt",
-        samplesdir + "/{sample}/log/mapping-stats.genome.done",
-    script:
-        "../scripts/mapping-stats-genome.sh"
+        stats=samplesdir + "/{sample}/log/mapping-stats.genome.txt",
+        done=samplesdir + "/{sample}/db/mapping-stats.genome.done",
+#    script:
+#        "../scripts/mapping-stats-genome.sh"
+    shell:
+        '''
+        {activ_conda}
+
+        echo "All reads mapped to genome (primary)" > {output.stats}
+        sqlite3 {input[0]} 'SELECT COUNT (DISTINCT qname) FROM genome WHERE (((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 256) == 0));' >> {output.stats}
+        echo "Unambiguously mapped reads to genome (unambiguous, primary flag not considered)" >> {output.stats}
+        sqlite3 {input[0]} 'SELECT COUNT (DISTINCT qname) FROM genome WHERE (((flag & 1) == 0 OR (flag & 64) == 64) AND (best_hit == 1 AND number_of_best_hits == 1));' >> {output.stats}
+
+        if [ `wc -l {output.stats} | cut -d ' ' -f1` -eq 4 ]; then
+            touch {output.done}
+        fi
+        '''
 
 
 ### Read lengths

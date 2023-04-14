@@ -2,9 +2,9 @@ samples: config/samples.csv
 
 dirs: config/dirs.yaml
 
-sqldb: yes
+sqldb: "yes"
 
-singularity_container: /home/jan/playground/TERA-Seq_snakemake/teraseq_snakemake.sif
+singularity_container: teraseq_snakemake.sif
 
 ref_links: config/ref_links.yaml
 

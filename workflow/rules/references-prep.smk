@@ -190,13 +190,11 @@ rule annotation_correct_unify:
         '''
 
 
-rule annotation_clean:
+rule annotation_clean_polya:
     input:
         datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf"
     output:
         datadir + "/{assembly}/genes-polya.gtf",
-        datadir + "/{assembly}/genes.gtf",
-        datadir + "/{assembly}/genes-total.gtf",
     shell:
         '''
         {activ_perl}
@@ -204,13 +202,34 @@ rule annotation_clean:
         cat {input} \
             | clean-gtf-lines-polya --gtf - \
             > {output[0]}
-        ln -sf $(basename {output[0]}) {output[1]}
+        '''
+
+
+rule annotation_clean_total:
+    input:
+        datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf"
+    output:
+        datadir + "/{assembly}/genes-total.gtf",
+    shell:
+        '''
+        {activ_perl}
 
         cat {input} \
             | clean-gtf-lines-total --gtf - \
-            > {output[2]}
+            > {output}
         '''
-             
+
+
+rule annotation_clean_def_link:
+    input:
+        datadir + "/{assembly}/genes-polya.gtf",
+    output:
+        datadir + "/{assembly}/genes.gtf",
+    shell:
+        '''
+        ln -sf $(basename {input) {output}
+        '''
+
 
 # rule annotation_elements:
 #     input:
@@ -229,67 +248,83 @@ rule annotation_clean:
 
 rule annotation_elements_polya:
     input:
-        datadir + "/{assembly}/genes.gtf"
+        datadir + "/{assembly}/genes-polya.gtf"
     output:
-        datadir + "/{assembly}/genic_elements.bed",
+        datadir + "/{assembly}/genic_elements-polya.bed",
     script:
         "../scripts/gff-to-genic-elements-bed.R"
 
 
-rule annotation_elements_total:
+use rule annotation_elements_polya as annotation_elements_total with:
     input:
-        datadir + "/{assembly}/genic_elements.bed",
+        datadir + "/{assembly}/genes-total.gtf"
     output:
         datadir + "/{assembly}/genic_elements-total.bed",
-    shell:
-        '''
-        ln -sf $(basename {input}) {output}
-        '''
 
 
 rule annotation_elements_extract_polya:
     input:
-        datadir + "/{assembly}/genic_elements.bed",
-#        datadir + "/{assembly}/genic_elements-total.bed",
+        datadir + "/{assembly}/genic_elements-polya.bed",
     output:
-        multiext(datadir + "/{assembly}/genic_elements", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
-        multiext(datadir + "/{assembly}/genic_elements-total", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
+        multiext(datadir + "/{assembly}/genic_elements-polya", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
     params:
+        protocol="polya",
         datadir=datadir,
     shell:
         '''
         # Create separate files for each genic element
         for element in "utr5" "utr3" "cds" "ncrna" "mrna"; do
             if grep -P -q ":${{element}}\t" {input}; then
-                grep ":${{element}}\t" {input} > {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
+                grep ":${{element}}\t" {input} > {params.datadir}/{wildcards.assembly}/genic_elements-{params.protocol}.${{element}}.bed
             else
-                touch {params.datadir}/{wildcards.assembly}/genic_elements.${{element}}.bed
+                touch {params.datadir}/{wildcards.assembly}/genic_elements-{params.protocol}.${{element}}.bed
             fi
-
-            # Create separate files for each genic element - total RNA - just copy the same thing as for polyA for now
-            ln -sf genic_elements.${{element}}.bed {params.datadir}/{wildcards.assembly}/genic_elements-total.${{element}}.bed
         done
         '''
 
-rule transcripts_extract:
+
+use rule annotation_elements_extract_polya as annotation_elements_extract_total with:
+    input:
+        datadir + "/{assembly}/genic_elements-total.bed",
+    output:
+        multiext(datadir + "/{assembly}/genic_elements-total", ".utr5.bed", ".utr3.bed", ".cds.bed", ".ncrna.bed", ".mrna.bed"),
+    params:
+        protocol="total",
+        datadir=datadir,
+
+
+rule transcripts_extract_polya:
     input:
         genome=datadir + "/{assembly}/genome.fa",
-        gtf=datadir + "/{assembly}/genes.gtf",
-        gtf_total=datadir + "/{assembly}/genes-total.gtf",
-        gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
+        gtf=datadir + "/{assembly}/genes-polya.gtf",
     output:
-        trans=datadir + "/{assembly}/transcripts-polya.fa",
-        trans_total=datadir + "/{assembly}/transcripts-total.fa",
-        gtf=datadir + "/{assembly}/ensembl_transcripts_protein_coding.gtf",
+        datadir + "/{assembly}/transcripts-polya.fa",
     shell:
         '''
         {activ_conda}
 
-        gffread -w {output.trans} -g {input.genome} {input.gtf} # Poly(A)
-        gffread -w {output.trans_total} -g {input.genome} {input.gtf_total} # Total
-
-        cat {input.gtf_ens} | grep "transcript_biotype \\"protein_coding\\"" > {output.gtf}
+        gffread -w {output} -g {input.genome} {input.gtf}
         '''
+
+
+use rule transcripts_extract_polya as transcripts_extract_total with:
+    input:
+        genome=datadir + "/{assembly}/genome.fa",
+        gtf=datadir + "/{assembly}/genes-total.gtf",
+    output:
+        datadir + "/{assembly}/transcripts-total.fa",
+
+
+rule transcripts_extract_protein_coding:
+    input:
+        gtf_ens=datadir + "/{assembly}/ensembl_genes.orig.corrected.gtf",
+    output:
+        gtf=datadir + "/{assembly}/ensembl_transcripts_protein_coding.gtf",    
+    shell:
+        ''' 
+        cat {input.gtf_ens} | grep "transcript_biotype \\"protein_coding\\"" > {output.gtf}
+        '''    
+
 
 # TODO: Change {output.index) to point to all the gmap index file and to the directory
 rule gtf_map_rrna:
@@ -386,21 +421,21 @@ rule index_genome_minimap2:
 
 use rule index_genome_minimap2 as index_trans_polya_minimap2 with:
     input:
-        trans=datadir + "/{assembly}/transcripts-polya.fa",
+        datadir + "/{assembly}/transcripts-polya.fa",
     output:
-        mmi_trans=datadir + "/{assembly}/minimap2.17/transcripts-polya.k12.mmi",
+        datadir + "/{assembly}/minimap2.17/transcripts-polya.k12.mmi",
 
 use rule index_genome_minimap2 as index_trans_total_minimap2 with:
     input:
-        trans_total=datadir + "/{assembly}/transcripts-total.fa",
+        datadir + "/{assembly}/transcripts-total.fa",
     output:
-        mmi_total=datadir + "/{assembly}/minimap2.17/transcripts-total.k12.mmi",
+        datadir + "/{assembly}/minimap2.17/transcripts-total.k12.mmi",
 
 use rule index_genome_minimap2 as index_trans_wrrna_minimap2 with:
     input:
-        trans_wrrna=datadir + "/{assembly}/ensembl-transcripts-wRibo.fa",
+        datadir + "/{assembly}/ensembl-transcripts-wRibo.fa",
     output:
-        mmi_wribo=datadir + "/{assembly}/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
+        datadir + "/{assembly}/minimap2.17/ensembl-transcripts-wRibo.k12.mmi",
 
 
 ### STAR
