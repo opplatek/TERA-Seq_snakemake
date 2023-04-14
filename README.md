@@ -199,7 +199,7 @@ snakemake \
 	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
 	--configfile config/config.yaml \
 	--directory /home/user/projects/TERASeq \
-	--resources map_jobs=$concurent_mappings \
+	--resources map_jobs=$concurrent_mappings \
 	--stats report/${date}.teraseq-snakemake-stats.txt
 	-p
 
