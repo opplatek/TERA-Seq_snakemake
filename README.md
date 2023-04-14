@@ -178,14 +178,14 @@ adapters: "config/adapters.yaml" # Adapter trimming settings
 conda activate teraseq-snakemake
 
 threads=16 
-concurent_mappings=2 
+concurrent_mappings=4 
 
 snakemake \
 	-c $threads --use-singularity \
 	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
 	--configfile config/config.yaml \
 	--directory /home/user/projects/TERASeq \
-	--resources map_jobs=$concurent_mappings \
+	--resources map_jobs=$concurrent_mappings \
 	-pn
 ```
 6. Run the pipeline with workflow stats and reports (Note: the reports need the additional Python packages mentioned in the [Getting the worflow section](getting-the-workflow):
