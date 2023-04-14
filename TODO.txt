@@ -26,7 +26,6 @@
 - make selection of trimming/assignment based on output (rel5 vs rel3) in the input of the last rule and not sort of hardcoded like we have it now
     - right now, it somehow works for 5tera and tera3, but would fail for 5tera3
 - switch the input functions to unpack() https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#input-functions-and-unpack
-- test
 
 - For Fadia
     here's the corresponding figure numbers (in blue) for the analyses, no pressure please, the most important analysis is the ribothrypsis profile (point 1-2) this will at least give me an idea if chasing the treatment/KD/Kout is promising or not:
