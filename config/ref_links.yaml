@@ -1,30 +1,30 @@
 hg38:
-  "org": "Homo sapiens"
-  "genome": "https://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz"
-  "gtf": "https://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
-  "gtf_extend_fiveutr": NA
-  "gtf_extend_threeutr": NA
-  "gtrna": "http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz"
-  "gtrna_bed": "data/hg38/hg38-tRNAs.bed"
+  org: "Homo sapiens"
+  genome: "https://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz"
+  gtf: "https://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/Homo_sapiens.GRCh38.91.gtf.gz"
+  gtf_extend_fiveutr: "NA"
+  gtf_extend_threeutr: "NA"
+  gtrna: "http://gtrnadb.ucsc.edu/genomes/eukaryota/Hsapi38/hg38-tRNAs.tar.gz"
+  gtrna_bed: "data/hg38/hg38-tRNAs.bed"
 
 mm10:
-  "org": "Mus musculus"
-  "genome": "https://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz"
-  "gtf": "https://ftp.ensembl.org/pub/release-97/gtf/mus_musculus/Mus_musculus.GRCm38.97.gtf.gz"
-  "gtf_extend_fiveutr": NA
-  "gtf_extend_threeutr": NA
-  "gtrna": "http://gtrnadb.ucsc.edu/genomes/eukaryota/Mmusc10/mm10-tRNAs.tar.gz"
-  "gtrna_bed": "data/mm10/mm10-tRNAs.bed"
+  org: "Mus musculus"
+  genome: "https://ftp.ensembl.org/pub/release-97/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz"
+  gtf: "https://ftp.ensembl.org/pub/release-97/gtf/mus_musculus/Mus_musculus.GRCm38.97.gtf.gz"
+  gtf_extend_fiveutr: "NA"
+  gtf_extend_threeutr: "NA"
+  gtrna: "http://gtrnadb.ucsc.edu/genomes/eukaryota/Mmusc10/mm10-tRNAs.tar.gz"
+  gtrna_bed: "data/mm10/mm10-tRNAs.bed"
 
 sc3:
-  "org": "Saccharomyces cerevisiae"
-  "genome": "https://ftp.ensembl.org/pub/release-109/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz"
-  "gtf": "https://ftp.ensembl.org/pub/release-109/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.109.gtf.gz"
-  "gtf_extend_fiveutr": 200
-  "gtf_extend_threeutr": 150
-  "gtrna": "http://gtrnadb.ucsc.edu/genomes/eukaryota/Scere3/sacCer3-tRNAs.tar.gz"
-  "gtrna_bed": "data/sc3/sacCer3-tRNAs.bed"
+  org: "Saccharomyces cerevisiae"
+  genome: "https://ftp.ensembl.org/pub/release-109/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz"
+  gtf: "https://ftp.ensembl.org/pub/release-109/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.109.gtf.gz"
+  gtf_extend_fiveutr: 200
+  gtf_extend_threeutr: 150
+  gtrna: "http://gtrnadb.ucsc.edu/genomes/eukaryota/Scere3/sacCer3-tRNAs.tar.gz"
+  gtrna_bed": "data/sc3/sacCer3-tRNAs.bed"
 
 silva:
-  "lsu": "https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz"
-  "ssu": "https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz"
+  lsu: "https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_LSURef_tax_silva_trunc.fasta.gz"
+  ssu: "https://www.arb-silva.de/fileadmin/silva_databases/release_132/Exports/SILVA_132_SSURef_Nr99_tax_silva_trunc.fasta.gz"

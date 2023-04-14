@@ -1,11 +1,13 @@
-samples: config/samples.csv
+samples: "config/samples.csv"
 
-dirs: config/dirs.yaml
+dirs: "config/dirs.yaml"
 
-sqldb: "yes"
+sqldb: "yes" # ["yes"|"no"]
 
-singularity_container: teraseq_snakemake.sif
+singularity_container: "teraseq_snakemake.sif"
 
-ref_links: config/ref_links.yaml
+resources: "config/resources.yaml"
 
-adapters: config/adapters.yaml
+ref_links: "config/ref_links.yaml"
+
+adapters: "config/adapters.yaml"

@@ -224,6 +224,8 @@ with open(config['dirs'], 'r') as file:
     samplesdir = DIRS['samplesdir']
     resdir = DIRS['resdir']
 
+with open(config['resources'], 'r') as file:
+    MAP_JOBS = yaml.safe_load(file)['map_jobs']
 
 ##### Wildcards constrains
 wildcard_constraints:
@@ -231,7 +233,6 @@ wildcard_constraints:
 #    k="\d+", # Only numbers
     k="[1-9]+", # Only numbers starting with 1
     assembly="[^/]*", # anything but "/" anywhere in the string; Note: don't use ^...$, to specify constrains, it woulnd't work
-
 
 ##### load rules #####
 include: "rules/references-prep.smk"
