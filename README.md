@@ -104,16 +104,16 @@ You **have to** update the main config file with the correct paths to the sub-co
 The main config files contain links to four sub-config files:
 * **`samples.csv`**
 A comma-delimited sample sheet with description and sample names to process. **Do not modify the header**. The sample sheet file has four columns:
-	* `sample ID/name` - the name of the sample directory. The sample directory **must** have **`fastq`** subdirectory with **`reads.1.fastq.gz`** file inside. `reads.1.fastq.gz` are the basecalled reads created by the TERA-Seq protocol.
-	* `assembly` - sample assembly. The implemented assemblies are: *hg38*, *mm10*, *sc3*.
-	* `libtype` - TERA-Seq library type. The implemented library types are: *5tera*, *tera3*, *5tera3*.
-	* `protocol` - RNA enrichment protocol. The implemented protocols are: *polya*, *total*.
+    * `sample ID/name` - the name of the sample directory. The sample directory **must** have **`fastq`** subdirectory with **`reads.1.fastq.gz`** file inside. `reads.1.fastq.gz` are the basecalled reads created by the TERA-Seq protocol.
+    * `assembly` - sample assembly. The implemented assemblies are: *hg38*, *mm10*, *sc3*.
+    * `libtype` - TERA-Seq library type. The implemented library types are: *5tera*, *tera3*, *5tera3*.
+    * `protocol` - RNA enrichment protocol. The implemented protocols are: *polya*, *total*.
 For example: *`hsa.dRNASeq.HeLa.total.REL3.1,hg38,tera3,total`* is a *hsa.dRNASeq.HeLa.total.REL3.1* sample, the reference is *hg38*, it is *tera3* library, and *total* RNA was extracted.
 * **`dirs.yaml `**
 A YAML file specifying data, samples, and results directories. Please note these paths are **relative** to the Snakefile or workdir.
-	* `datadir` - directory used to store references.
-	* `samplesdir` - directory containing samples for the analysis. The samples inside this directory **must** be named **exactly** as in the `samples.csv` sample sheet. The individual samples **must** contain `fastq` directory with `reads.1.fastq.gz` FASTQ file.
-	* `resdir` - directory name used to save the workflow results.
+    * `datadir` - directory used to store references.
+    * `samplesdir` - directory containing samples for the analysis. The samples inside this directory **must** be named **exactly** as in the `samples.csv` sample sheet. The individual samples **must** contain `fastq` directory with `reads.1.fastq.gz` FASTQ file.
+    * `resdir` - directory name used to save the workflow results.
 * **`sqldb`** 
 Do you want to create an annotated SQL DB file? ["yes"|"no"]. **Must** include the double quotes. Default: "no".
 * **`singularity_container`**
@@ -125,21 +125,21 @@ A YAML file specifying links to download the references. The workflow has been t
 This YAML file is structured as follows:
 ```yaml
 organism reference name abbreviation:
-	org: organism Latin name
-	genome: link to download the reference genome
-	gtf: link to download the reference genome annotation GTF file
-	gtf_extend_fiveutr: number of nucleotides to extend the 5' UTR. New UTRs are created if they don't exist. Please note this has been tested only for the sc3 genome. Use "NA" if no nucleotides are to be added.
-	gtf_extend_threeutr: number of nucleotides to extend the 3' UTR. New UTRs are created if they don't exist. Please note this has been tested only for the sc3 genome. Use "NA" if no nucleotides are to be added.
-	gtrna: link to donwload [GtRNAdb](https://gtrnadb.ucsc.edu/) tRNA annotation archive.
-	gtrna_bed: name of the decompressed BED file from the GtRNAdb tRNA annotation archive.
+    org: organism Latin name
+    genome: link to download the reference genome
+    gtf: link to download the reference genome annotation GTF file
+    gtf_extend_fiveutr: number of nucleotides to extend the 5' UTR. New UTRs are created if they don't exist. Please note this has been tested only for the sc3 genome. Use "NA" if no nucleotides are to be added.
+    gtf_extend_threeutr: number of nucleotides to extend the 3' UTR. New UTRs are created if they don't exist. Please note this has been tested only for the sc3 genome. Use "NA" if no nucleotides are to be added.
+    gtrna: link to donwload [GtRNAdb](https://gtrnadb.ucsc.edu/) tRNA annotation archive.
+    gtrna_bed: name of the decompressed BED file from the GtRNAdb tRNA annotation archive.
 ```
 Use this file to add/update organisms/assemblies/references.
 
 There is a special section for [Silva rRNA](https://www.arb-silva.de/) annotation:
 ```yaml
 silva:
-	lsu: Link to download Large (23S/28S) subunit Silva ribosomal RNAs FASTA file archive.
-	ssu: Link to download Small (16S/18S) subunit Silva ribosomal RNAs FASTA file archive.
+    lsu: Link to download Large (23S/28S) subunit Silva ribosomal RNAs FASTA file archive.
+    ssu: Link to download Small (16S/18S) subunit Silva ribosomal RNAs FASTA file archive.
 ```
 * **`adapters.yaml`**
 YAML file with optimal adapter trimming parameters for individual TERA-Seq library types. Note: TERA-Seq has been tested on Nanopore Flow Cell ([R9.4.1 FLO-MIN106](https://store.nanoporetech.com/us/flow-cell-r9-4-1.html)) dRNA-Seq protocol ([SQK-RNA002](https://store.nanoporetech.com/us/direct-rna-sequencing-kit.html)). Optimal adapter removal settings will be different for other flow cells and protocols.
@@ -185,12 +185,12 @@ threads=16
 concurrent_mappings=4 
 
 snakemake \
-	-c $threads --use-singularity \
-	--resources map_jobs=$concurrent_mappings \
-	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
-	--directory /home/user/projects/TERASeq \
-	--configfile config/config.yaml \
-	-pn
+    -c $threads --use-singularity \
+    --resources map_jobs=$concurrent_mappings \
+    --snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+    --directory /home/user/projects/TERASeq \
+    --configfile config/config.yaml \
+    -pn
 ```
 6. Run the pipeline with workflow stats and reports (Note: the reports need the additional Python packages mentioned in the [Getting the worflow section](getting-the-workflow):
 ```bash
@@ -199,13 +199,13 @@ mkdir report
 
 # Run the workflow with stats
 snakemake \
-	-c $threads --use-singularity \
-	--resources map_jobs=$concurrent_mappings \
-	--snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
-	--directory /home/user/projects/TERASeq \
-	--configfile config/config.yaml \
-	--stats report/${date}.myFirstRun.teraseq-snakemake-stats.txt
-	-p
+    -c $threads --use-singularity \
+    --resources map_jobs=$concurrent_mappings \
+    --snakefile /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+    --directory /home/user/projects/TERASeq \
+    --configfile config/config.yaml \
+    --stats report/${date}.myFirstRun.teraseq-snakemake-stats.txt
+    -p
 
 # Make reports and summaries
 snakemake \
@@ -222,12 +222,12 @@ If you don't want to remember how to run Snakemake, you can use the "helper" [`r
 ```bash
 # Use the same settings as in the example
 ./run.sh \
-	/home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
-	/home/user/projects/TERASeq \
-	config/config.yaml \
-	"myFirstRun" \
-	16 \
-	4
+    /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile \
+    /home/user/projects/TERASeq \
+    config/config.yaml \
+    "myFirstRun" \
+    16 \
+    4
 
 # Use the default settings only with mandatory arguments
 ./run.sh /home/user/tools/TERA-Seq_snakemake/workflow/Snakefile /home/user/projects/TERASeq 
@@ -281,19 +281,19 @@ If you don't want to remember how to run Snakemake, you can use the "helper" [`r
 |   |-- reads.1.sanitize.adapt_trim.fastq.gz -> reads.1.sanitize.adapt_trim.tera3.fastq.gz # TERA3 adapter-removed FASTQ file - link
 |   |-- reads.1.sanitize.adapt_trim.tera3.fastq.gz # TERA3 adapter-removed FASTQ file - source
 |   |-- reads.1.sanitize.w_adapt.tera3.fastq.gz # FASTQ file with reads w/ TERA3 adapter found (adapter removed)
-|	`-- ...
+|    `-- ...
 |   |-- reads.1.sanitize.w_adapt.tera3.names.txt # List of reads w/ TERA3 adapter found
 |   |-- reads.1.sanitize.wo_adapt.tera3.fastq.gz # FASTQ file with reads w/o TERA3 adapter found
 |   |-- reads.1.sanitize.wo_adapt.tera3.names.txt # List of reads w/o TERA3 adapter found
-|	`-- ...
+|    `-- ...
 |-- align # Identical to the 5TERA example
-|	`-- ...
+|    `-- ...
 |-- db # Identical to the 5TERA example
-|	`-- ...
+|    `-- ...
 `-- log
     |-- cutadapt.tera3.full-length.log # TERA3 adapter Cutadapt log file from the whole reads after subsetting only for TERA3-found reads
     |-- cutadapt.tera3.log # TERA3 adapter Cutadapt log file only from the last 200 nt
-	`-- ...    
+    `-- ...
 ```
 
 ### 5TERA3 sample - differences from 5TERA and TERA3 samples only
