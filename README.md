@@ -108,6 +108,7 @@ A comma-delimited sample sheet with description and sample names to process. **D
     * `assembly` - sample assembly. The implemented assemblies are: *hg38*, *mm10*, *sc3*.
     * `libtype` - TERA-Seq library type. The implemented library types are: *5tera*, *tera3*, *5tera3*.
     * `protocol` - RNA enrichment protocol. The implemented protocols are: *polya*, *total*.
+
 For example: *`hsa.dRNASeq.HeLa.total.REL3.1,hg38,tera3,total`* is a *hsa.dRNASeq.HeLa.total.REL3.1* sample, the reference is *hg38*, it is *tera3* library, and *total* RNA was extracted.
 * **`dirs.yaml `**
 A YAML file specifying data, samples, and results directories. Please note these paths are **relative** to the Snakefile or workdir.
@@ -218,7 +219,7 @@ snakemake \
 ```
 
 ### Helper run script
-If you don't want to remember how to run Snakemake, you can use the "helper" [`run.sh`](run.sh) script. Run:
+If you don't want to remember how to run Snakemake, you can use the *helper* [`run.sh`](run.sh) script. Run:
 ```bash
 # Use the same settings as in the example
 ./run.sh \

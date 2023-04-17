@@ -1,24 +1,31 @@
 #!/bin/bash
 #
 # Six arguments: 
-#   Snakefile path (required)
-#   Analysis/workdir path (required)
-#   Main config file path (optional, default: config/config.yaml
-#   Analysis name for the reports (optional; default: "run")
-#   Number of threads to use (optional; default: 1)N
-#   Number of concurrent mapping jobs (optional; default: 4)
+#   Snakefile path (default: workflow/Snakefile)
+#   Analysis/workdir path (default: path to this script)
+#   Main config file path (default: config/config.yaml)
+#   Analysis name for the reports (default: "run")
+#   Number of threads to use (default: 1)N
+#   Number of concurrent mapping jobs (default: 4)
 #
 ################################
-usage="Usage: $(basename "$0") snakefilePah workDir configPah (optional; default: config/config.yaml) analysisName (optional; default: \"run\") numberOfThreads (optional; default: 1) numerOfMapJobs (optional; default: 4)"
+usage="Usage: $(basename "$0") snakefilePath (default: workflow/Snakefile) workDir (default: path to this script) configPath (default: config/config.yaml) analysisName (default: \"run\") numberOfThreads (default: 1) numerOfMapJobs (default: 4)"
 
-if [ "$#" -eq 0 ] | [ "$#" -lt 2 ]; then
+if [ "$#" -eq 0 ]; then
     echo $usage
     exit 1
 fi
 
-snakefile=$1
+# Snakefile path
+snakefile="workflow/Snakefile"
+if [ "$#" -ge 1 ]; then
+    snakefile=$1
+fi
 
-workdir=$2
+workdir=$(dirname $(realpath -s $0))
+if [ "$#" -ge 2 ]; then
+    workdir=$2
+fi
 
 # Main config file
 config="config/config.yaml"
