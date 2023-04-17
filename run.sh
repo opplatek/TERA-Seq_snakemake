@@ -1,9 +1,15 @@
 #!/bin/bash
 #
-# Five arguments: Snakefile path (required), Analysis/workdir path (required), analysis name for the reports (optional, default: "run"), and number of threads to use (optional, default: 1), and number of concurrent mapping jobs (optional, default: 4)
+# Six arguments: 
+#   Snakefile path (required)
+#   Analysis/workdir path (required)
+#   Main config file path (optional, default: config/config.yaml
+#   Analysis name for the reports (optional; default: "run")
+#   Number of threads to use (optional; default: 1)N
+#   Number of concurrent mapping jobs (optional; default: 4)
 #
 ################################
-usage="Usage: $(basename "$0") analysisName numberOfThreads (default: 1)"
+usage="Usage: $(basename "$0") snakefilePah workDir configPah (optional; default: config/config.yaml) analysisName (optional; default: \"run\") numberOfThreads (optional; default: 1) numerOfMapJobs (optional; default: 4)"
 
 if [ "$#" -eq 0 ] | [ "$#" -lt 2 ]; then
     echo $usage
@@ -14,22 +20,28 @@ snakefile=$1
 
 workdir=$2
 
+# Main config file
+config="config/config.yaml"
+if [ "$#" -eq 3 ]; then
+    config=$3
+fi
+
 # Analysis name (for reports)
 analysis="run"
-if [ "$#" -eq 3 ]; then
-    analysis=$3
+if [ "$#" -eq 4 ]; then
+    analysis=$4
 fi
 
 # Number of threads to use
 threads=1
-if [ "$#" -eq 4 ]; then
-    threads=$4
+if [ "$#" -eq 5 ]; then
+    threads=$5
 fi
 
 # The maximum number of concurrent mapping jobs
 map_jobs=4
-if [ "$#" -eq 5 ]; then
-    map_jobs=$5
+if [ "$#" -eq 6 ]; then
+    map_jobs=$6
 fi
 
 ### Additional variables
@@ -40,7 +52,7 @@ reportdir="workflow/report"
 
 ################################
 
-echo "Running >>> ${analysis} <<< analysis with ${snakefile} Snakefile in ${workdir} workdir with ${threads} threads, and with the maximum of ${map_jobs} mapping jobs."
+echo "Running >>> ${analysis} <<< analysis with ${snakefile} Snakefile in ${workdir} workdir, with main config ${config}, ${threads} threads, and a maximum of ${map_jobs} mapping jobs."
  
 ################################
 # In case Conda doesn't load automatically
@@ -57,7 +69,7 @@ snakemake \
     --resources map_jobs=${map_jobs} \
     --snakefile ${snakefile} \
     --directory ${workdir} \
-    --configfile config/config.yaml \
+    --configfile ${config} \
     --stats ${reportdir}/${date}.${analysis}.teraseq-snakemake-stats.txt \
     -p
 

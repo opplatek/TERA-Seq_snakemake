@@ -2,7 +2,7 @@ samples: "config/samples.csv"
 
 dirs: "config/dirs.yaml"
 
-sqldb: "yes" # ["yes"|"no"]
+sqldb: "no" # ["yes"|"no"]
 
 singularity_container: "teraseq_snakemake.sif"
 
