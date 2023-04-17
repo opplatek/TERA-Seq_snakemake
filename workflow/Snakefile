@@ -204,7 +204,6 @@ def get_mem_mb(wildcards, threads):
 
 
 ##### read config #####
-#SAMPLES=["sc.test.1"]
 SAMPLES = pd.read_csv(config['samples'])['sample'].tolist() # read list of samples from the config
 
 ASSEMBLIES = dict(pd.read_csv(config['samples']).set_index('sample', drop=False)['assembly']) # Read sample->assembly
@@ -216,7 +215,6 @@ with open(config['adapters'], 'r') as file:
     ADAPTERS = yaml.safe_load(file)
 with open(config['ref_links'], 'r') as file:
     REF_LINKS = yaml.safe_load(file)
-#print(ADAPTERS[LIBTYPES["hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1"]])
 with open(config['dirs'], 'r') as file:
     DIRS = yaml.safe_load(file)
 
