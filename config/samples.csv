@@ -1,4 +1,4 @@
 sample,assembly,libtype,protocol
-hsa.dRNASeq.HeLa.polyA.CIP.decap.REL5.long.1,hg38,5tera,polya
-hsa.dRNASeq.HeLa.total.REL3.1,hg38,tera3,total
-hsa.dRNASeq.HeLa.total.REL5.long.REL3.4,hg38,5tera3,total
+hsa.5tera,hg38,5tera,polya
+hsa.tera3,hg38,tera3,total
+hsa.5tera3,hg38,5tera3,total

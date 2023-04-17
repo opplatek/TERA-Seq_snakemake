@@ -51,8 +51,8 @@ rule cutadapt_plot_lens:
 #         samplesdir + "/{sample}/db/annot_trans_adapt.done",
 #         samplesdir + "/{sample}/db/annot_genome_adapt.done",
 #     output:
-#         samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
-#         samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+#         samplesdir + "/{sample}/log/sqldb.mapping-stats.transcriptome.txt",
+#         samplesdir + "/{sample}/db/sqldb.mapping-stats.transcriptome.done",
 #     params:
 #         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
 #     shell:
@@ -70,10 +70,10 @@ rule mapped_transcriptome:
 #        samplesdir + "/{sample}/db/annot_trans_5tera.done",
         # samplesdir + "/{sample}/db/annot_trans_adapt.done",
         # samplesdir + "/{sample}/db/annot_genome_adapt.done",
-        samplesdir + "/{sample}/db/annot_sqldb.done"        
+        samplesdir + "/{sample}/db/annot_sqldb.done"
     output:
-        stats = samplesdir + "/{sample}/log/mapping-stats.transcriptome.txt",
-        done = samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+        stats = samplesdir + "/{sample}/log/sqldb.mapping-stats.transcriptome.txt",
+        done = samplesdir + "/{sample}/db/sqldb.mapping-stats.transcriptome.done",
     params:
         libtype=lambda wildcards: get_libtype(LIBTYPES, wildcards.sample),
 #    script:
@@ -90,7 +90,7 @@ rule mapped_transcriptome:
         elif [ {params.libtype} == "tera3" ]; then
             adapt_cols="rel3"
         elif [ {params.libtype} == "5tera" ]; then
-            adapt_cols="rel5"        
+            adapt_cols="rel5"
         fi
 
         echo "All reads mapped to protein-coding transcripts (primary)" > {output.stats}
@@ -107,7 +107,7 @@ rule mapped_transcriptome:
             echo "All mapped protein-coding transcripts without ${{adapt_col}} adapter (from primary mappings)" >> {output.stats}
             sqlite3 {input[0]} "SELECT COUNT (DISTINCT rname) FROM transcr WHERE (${{adapt_col}} IS NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}
             echo "All mapped protein-coding transcripts with ${{adapt_col}} adapter (from primary mappings)" >> {output.stats}
-            sqlite3 {input[0]} "SELECT COUNT (DISTINCT rname) FROM transcr WHERE (${{adapt_col}} IS NOT NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}      
+            sqlite3 {input[0]} "SELECT COUNT (DISTINCT rname) FROM transcr WHERE (${{adapt_col}} IS NOT NULL AND ((flag & 1) == 0 OR (flag & 64) == 64) AND ((flag & 16) == 0) AND ((flag & 256) == 0) AND (coding_transcript IS NOT NULL AND noncoding_transcript IS NULL));" >> {output.stats}
         done
 
         if [ `wc -l {output.stats} | cut -d ' ' -f1` -eq 12 ] || [ `wc -l {output.stats} | cut -d ' ' -f1` -eq 20 ] ; then
@@ -118,13 +118,13 @@ rule mapped_transcriptome:
 # rule mapped_genome:
 #     input:
 #         samplesdir + "/{sample}/db/sqlite.db",
-#         samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+#         samplesdir + "/{sample}/db/sqldb.mapping-stats.transcriptome.done",
 # #        samplesdir + "/{sample}/db/annot_genome_5tera.done",
 #         samplesdir + "/{sample}/db/annot_trans_adapt.done",
 #         samplesdir + "/{sample}/db/annot_genome_adapt.done",
 #     output:
-#         samplesdir + "/{sample}/log/mapping-stats.genome.txt",
-#         samplesdir + "/{sample}/db/mapping-stats.genome.done",
+#         samplesdir + "/{sample}/log/sqldb.mapping-stats.genome.txt",
+#         samplesdir + "/{sample}/db/sqldb.mapping-stats.genome.done",
 #     shell:
 #         '''
 #         {activ_conda}
@@ -136,13 +136,13 @@ rule mapped_transcriptome:
 rule mapped_genome:
     input:
         samplesdir + "/{sample}/db/sqlite.db",
-        samplesdir + "/{sample}/db/mapping-stats.transcriptome.done",
+        samplesdir + "/{sample}/db/sqldb.mapping-stats.transcriptome.done",
         # samplesdir + "/{sample}/db/annot_trans_adapt.done",
         # samplesdir + "/{sample}/db/annot_genome_adapt.done",
         samplesdir + "/{sample}/db/annot_sqldb.done"
     output:
-        stats=samplesdir + "/{sample}/log/mapping-stats.genome.txt",
-        done=samplesdir + "/{sample}/db/mapping-stats.genome.done",
+        stats=samplesdir + "/{sample}/log/sqldb.mapping-stats.genome.txt",
+        done=samplesdir + "/{sample}/db/sqldb.mapping-stats.genome.done",
 #    script:
 #        "../scripts/mapping-stats-genome.sh"
     shell:
@@ -205,14 +205,14 @@ rule read_length_hist_all_parse:
         keepzero=False,
     script:
         "../scripts/parse-bbmap-lens.py"
-        
+
 
 # Trimmed fastq lengths - per read (read-len.tsv)
 # rule read_length_all:
 #     input:
 #         samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
 #     output:
-#         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",    
+#         samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
 #     shell:
 #         '''
 #         {activ_conda}
@@ -225,7 +225,7 @@ rule read_length_all:
     input:
         samplesdir + "/{sample}/fastq/reads.1.sanitize.adapt_trim.fastq.gz",
     output:
-        samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",    
+        samplesdir + "/{sample}/log/reads.1.sanitize.adapt_trim.read-len.tsv.gz",
     script:
         "../scripts/fastq-read-length.py"
 
@@ -280,7 +280,7 @@ use rule mapped_length_genome as mapped_length_transcriptome with:
 #     output:
 #         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
 #     params:
-#         len_cap=5000,        
+#         len_cap=5000,
 #     shell:
 #         '''
 #         {activ_conda}
@@ -298,7 +298,7 @@ rule total_aligned_genome_length_plot:
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.len.trim-vs-aligned.pdf",
     params:
-        len_cap=5000,        
+        len_cap=5000,
     script:
         "../scripts/plot-aligned-vs-fastq-length.R"
 
@@ -347,3 +347,32 @@ use rule mapped_length_genome_plot as mapped_length_transcriptome_plot with:
         aligned_len=samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.align-len.full.tsv.gz",
     output:
         samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.len.mapped-vs-aligned.pdf",
+
+
+rule mapping_stats_genome:
+    input:
+        samplesdir + "/{sample}/align/reads.1.sanitize.toGenome.sorted.bam",
+    output:
+        samplesdir + "/{sample}/log/reads.1.sanitize.toGenome.mapping-stats.tsv",        
+    params:
+        samflags="-F 4 -F 256 -F 2048",
+    threads: 16
+    shell:
+        '''
+        echo -e "stat\t{wildcards.sample}" > {output}
+
+        samtools stats -@ {threads} {params.samflags} {input} \
+            | grep '^SN' \
+            | cut -f 2- \
+            | cut -f1,2 \
+            >> {output}
+        '''
+
+
+use rule mapping_stats_genome as mapping_stats_transcriptome with:
+    input:
+        samplesdir + "/{sample}/align/reads.1.sanitize.noribo.toTranscriptome.sorted.bam",
+    output:
+        samplesdir + "/{sample}/log/reads.1.sanitize.noribo.toTranscriptome.mapping-stats.tsv",        
+    params:
+        samflags="-F 4 -F 256 -F 2048 -F 16",    
