@@ -253,7 +253,7 @@ TARGETS = ["log/cutadapt.len.pdf",
            "log/reads.1.sanitize.noribo.toTranscriptome.mapping-stats.tsv"
           ]
 # Add sqldb-related outputs if sqldb is set to yes|true in the config file
-if (re.compile("yes|true")).match(config['sqldb'].lower()):
+if (re.compile("yes|true")).match(config['sqldb'][0].lower()):
     TARGETS.extend(["db/annot_sqldb.done",
                     "db/sqldb.mapping-stats.genome.done",
                     "db/sqldb.mapping-stats.transcriptome.done"])

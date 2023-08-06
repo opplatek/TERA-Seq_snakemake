@@ -99,7 +99,7 @@ You must remember Snakemake is based on **relative** directory structure to the 
 ### Config file
 The main config file is in [`config/config.yaml`](config/config.yaml). The location of the main config file can be specified when launching the Snakemake, but we **strongly recommend** to keep it in your main project directory. 
 
-You **have to** update the main config file with the correct paths to the sub-configs. Please note the paths can be either **absolute** or **relative** to Snakefile or workdir. We recommend copying the whole `config` directory to your workdir, keeping the sub-config files with relative paths, and only specifying the Singularity file directory name with an absolute path.
+You **have to** update the main config file with the correct paths to the sub-configs. Please note the paths can be either **absolute** or **relative** to Snakefile/workdir. We recommend copying the whole `config` directory to your workdir, and setting the sub-config files as well as Singularity container file using **absolute paths**. Relative paths should be fine as well.
 
 The main config files contain links to four sub-config files:
 * **`samples.csv`**
